@@ -1,18 +1,23 @@
 """Parsing of the XML files published under the Price Transparency Law.
 
 Chains follow the same schema loosely: tag case differs (StoreID / StoreId /
-STOREID), files may be gzip'ed or not, and the encoding is UTF-8 or UTF-16.
+STOREID), files may be gzip'ed, zipped or plain, and the encoding is UTF-8 or UTF-16.
 Everything here normalises tag names to lower case.
 """
 
 import gzip
+import io
 import re
+import zipfile
 import xml.etree.ElementTree as ET
 
 
 def decode(data: bytes) -> str:
     if data[:2] == b"\x1f\x8b":
         data = gzip.decompress(data)
+    elif data[:2] == b"PK":
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            data = z.read(z.namelist()[0])
     if data[:2] in (b"\xff\xfe", b"\xfe\xff"):
         text = data.decode("utf-16")
     else:

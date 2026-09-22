@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 from . import config
 from .parse import matches_region, parse_prices
-from .sources import Carrefour, Cerberus, Shufersal
+from .sources import Bina, Carrefour, Cerberus, Shufersal
 
 log = logging.getLogger("pricecompare")
 
@@ -30,6 +30,8 @@ def _sources():
     yield Carrefour(config.CARREFOUR)
     for chain in config.CERBERUS:
         yield Cerberus(chain)
+    for chain in config.BINA:
+        yield Bina(chain)
 
 
 def _size(item):
@@ -43,7 +45,8 @@ def collect_chain(source, region):
     """Return [(store dict, [items])] for the chain's stores in the region."""
     key = source.chain["key"]
     try:
-        stores = [s for s in source.stores() if matches_region(s, region)]
+        stores = {s["store_id"]: s for s in source.stores() if matches_region(s, region)}
+        stores = list(stores.values())
         log.info("%s: %d stores in %s", key, len(stores), region["name"])
         if not stores:
             return []

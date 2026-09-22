@@ -17,6 +17,9 @@
 | אושר עד | url.publishedprices.co.il | 1 |
 | קשת טעמים | url.publishedprices.co.il | 1 |
 | דור אלון (AM:PM, אלונית) | url.publishedprices.co.il | 3 |
+| סופר ספיר (כולל נטו חיסכון) | supersapir.binaprojects.com | 3 |
+| שוק העיר | shuk-hayir.binaprojects.com | 1 |
+| גוד פארם | goodpharm.binaprojects.com | 1 |
 
 הסניפים נבחרים אוטומטית לפי קוד היישוב (6500) או לפי השם "חדרה" / "בית אליעזר" /
 "גבעת אולגה" בשם או בכתובת הסניף. אפשר לשנות אזור ב־`pricecompare/config.py`.
@@ -37,7 +40,7 @@ python -m pricecompare serve      # http://localhost:8000
 
 ## איך זה עובד
 
-- `pricecompare/sources.py` — הורדת קבצים משלושת הפורטלים (שופרסל, Cerberus, קרפור).
+- `pricecompare/sources.py` — הורדת קבצים מארבעה פורטלים (שופרסל, Cerberus, קרפור, Bina).
 - `pricecompare/parse.py` — פענוח קובצי XML (UTF‑8/UTF‑16, gzip, הבדלי שמות תגיות בין רשתות).
 - `pricecompare/build.py` — איחוד כל הסניפים לקובץ JSON דחוס אחד (כ־1MB ב־gzip).
 - `web/index.html` — האפליקציה. כל החישוב קורה בדפדפן; הסל נשמר בדפדפן.
@@ -46,4 +49,14 @@ python -m pricecompare serve      # http://localhost:8000
 
 - ההשוואה לפי ברקוד. פירות, ירקות ומאפים בקוד פנימי של הרשת לא נכללים.
 - מחירים רגילים בלבד — ללא מבצעים ומחירי מועדון (קובצי Promo עוד לא נקראים).
-- רשתות בפורטלים אחרים (ויקטורי, מחסני השוק, חצי חינם ועוד) עוד לא נתמכות.
+- ויקטורי, מחסני השוק, ח. כהן וחצי חינם לא נתמכים: האתרים שלהם חוסמים גישה
+  משרתים מחוץ לישראל (כולל GitHub Actions).
+
+## פרויקטי קוד פתוח קשורים
+
+- [OpenIsraeliSupermarkets/israeli-supermarket-scarpers](https://github.com/OpenIsraeliSupermarkets/israeli-supermarket-scarpers)
+  (`pip install il-supermarket-scraper`) — ספריית הורדה ל־40 רשתות. שימשה כאן כדי
+  למפות את הפורטלים והמזהים של רשתות Bina.
+- [OpenIsraeliSupermarkets/israeli-supermarket-parsers](https://github.com/erlichsefi/israeli-supermarket-parser/) — פענוח הקבצים.
+- [ronilitman/grocery-price-data](https://github.com/ronilitman/grocery-price-data) — מסד SQLite לילי של כל הרשתות, כולל מבצעים.
+- [fluhus/prices](https://github.com/fluhus/prices) — כלי איסוף בשפת Go.

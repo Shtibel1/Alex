@@ -159,3 +159,38 @@ class Carrefour:
             sid: (lambda name=latest[sid]: _get(self.session, f"{self.BASE}/{folder}/{name}").content)
             for sid in store_ids if sid in latest
         }
+
+
+class Bina:
+    """Chains hosted by Bina Projects (<prefix>.binaprojects.com)."""
+
+    FILE_TYPES = {"stores": 1, "pricefull": 4}
+
+    def __init__(self, chain):
+        self.chain = chain
+        self.base = f"https://{chain['prefix']}.binaprojects.com"
+        self.session = requests.Session()
+        self.session.headers.update(HEADERS)
+
+    def _list(self, file_type, store_id=""):
+        r = _get(self.session, f"{self.base}/MainIO_Hok.aspx", params={
+            "_": self.chain["chain_id"], "wReshet": "הכל",
+            "WFileType": self.FILE_TYPES[file_type], "WDate": "", "WStore": store_id,
+        })
+        return [row["FileNm"] for row in r.json()]
+
+    def _download(self, name):
+        r = _get(self.session, f"{self.base}/Download.aspx", params={"FileNm": name})
+        return _get(self.session, r.json()[0]["SPath"]).content
+
+    def stores(self):
+        names = sorted(n for n in self._list("stores") if n.lower().startswith("stores"))
+        return list(parse_stores(self._download(names[-1]))) if names else []
+
+    def latest_price_files(self, store_ids):
+        out = {}
+        for store_id in store_ids:
+            latest = _latest(self._list("pricefull", store_id)).get(store_id)
+            if latest:
+                out[store_id] = lambda name=latest: self._download(name)
+        return out

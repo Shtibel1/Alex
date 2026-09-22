@@ -1,5 +1,7 @@
 import gzip
+import io
 import unittest
+import zipfile
 
 from pricecompare.parse import (
     file_store_and_time, matches_region, normalize_barcode, parse_prices, parse_stores,
@@ -34,6 +36,12 @@ class ParseTest(unittest.TestCase):
         stores = list(parse_stores(b"\xff\xfe" + STORES.encode("utf-16-le")))
         self.assertEqual([s["store_id"] for s in stores], ["44", "1", "22"])
         self.assertEqual([s["store_id"] for s in stores if matches_region(s, REGION)], ["44", "22"])
+
+    def test_zipped_file(self):
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as z:
+            z.writestr("Stores.xml", STORES)
+        self.assertEqual(len(list(parse_stores(buf.getvalue()))), 3)
 
     def test_file_names(self):
         self.assertEqual(file_store_and_time("PriceFull7290058140886-001-044-20260922-120023.gz"), ("44", "20260922120023"))

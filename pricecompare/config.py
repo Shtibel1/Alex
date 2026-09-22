@@ -34,3 +34,13 @@ CERBERUS = [
     {"key": "salachdabach", "name": "סאלח דבאח", "user": "SalachD"},
     {"key": "freshmarket", "name": "פרש מרקט", "user": "freshmarket"},
 ]
+
+# Chains hosted by Bina Projects (<prefix>.binaprojects.com).
+BINA = [
+    {"key": "shukhair", "name": "שוק העיר", "prefix": "shuk-hayir", "chain_id": "7290058148776"},
+    {"key": "supersapir", "name": "סופר ספיר", "prefix": "supersapir", "chain_id": "7290058156016"},
+    {"key": "goodpharm", "name": "גוד פארם", "prefix": "goodpharm", "chain_id": "7290058197699"},
+    {"key": "kingstore", "name": "קינג סטור", "prefix": "kingstore", "chain_id": "7290058108879"},
+    {"key": "zolvebegadol", "name": "זול ובגדול", "prefix": "zolvebegadol", "chain_id": "7290058173198"},
+    {"key": "maayan2000", "name": "מעיין 2000", "prefix": "maayan2000", "chain_id": "7290058159628"},
+]
