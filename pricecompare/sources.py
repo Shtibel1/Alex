@@ -1,0 +1,161 @@
+"""Downloaders for the chains' price portals.
+
+Every source exposes the same two methods:
+    stores()                 -> list of store dicts (see parse.parse_stores)
+    latest_price_files(ids)  -> {store_id: downloader} for the newest PriceFull
+"""
+
+import html
+import re
+import time
+
+import requests
+
+from .parse import file_store_and_time, parse_stores
+
+TIMEOUT = 120
+HEADERS = {"User-Agent": "Mozilla/5.0 (price-compare; +https://github.com/shtibel1/alex)"}
+
+
+def _get(session, url, **kwargs):
+    """GET with a few retries; the portals are slow and occasionally time out."""
+    for attempt in range(4):
+        try:
+            r = session.get(url, timeout=TIMEOUT, **kwargs)
+            r.raise_for_status()
+            return r
+        except requests.RequestException:
+            if attempt == 3:
+                raise
+            time.sleep(2 ** (attempt + 1))
+
+
+def _post(session, url, **kwargs):
+    for attempt in range(4):
+        try:
+            r = session.post(url, timeout=TIMEOUT, **kwargs)
+            r.raise_for_status()
+            return r
+        except requests.RequestException:
+            if attempt == 3:
+                raise
+            time.sleep(2 ** (attempt + 1))
+
+
+def _latest(names):
+    """Newest file name per store id."""
+    best = {}
+    for name in names:
+        store_id, stamp = file_store_and_time(name)
+        if store_id is None:
+            continue
+        if store_id not in best or stamp > best[store_id][0]:
+            best[store_id] = (stamp, name)
+    return {store_id: name for store_id, (_, name) in best.items()}
+
+
+class Shufersal:
+    BASE = "https://prices.shufersal.co.il/FileObject/UpdateCategory"
+    CAT_PRICEFULL, CAT_STORES = 2, 5
+
+    def __init__(self, chain):
+        self.chain = chain
+        self.session = requests.Session()
+        self.session.headers.update(HEADERS)
+
+    def _links(self, cat, store_id=0):
+        r = _get(self.session, self.BASE, params={"catID": cat, "storeId": store_id})
+        return [html.unescape(u) for u in re.findall(r'href="(https://pricesprodpublic[^"]+)"', r.text)]
+
+    def stores(self):
+        url = self._links(self.CAT_STORES)[0]
+        return list(parse_stores(_get(self.session, url).content))
+
+    def latest_price_files(self, store_ids):
+        out = {}
+        for store_id in store_ids:
+            links = self._links(self.CAT_PRICEFULL, store_id)
+            by_name = {u.split("?")[0].rsplit("/", 1)[-1]: u for u in links}
+            latest = _latest(by_name).get(store_id)
+            if latest:
+                url = by_name[latest]
+                out[store_id] = lambda url=url: _get(self.session, url).content
+        return out
+
+
+class Cerberus:
+    BASE = "https://url.publishedprices.co.il"
+
+    def __init__(self, chain):
+        self.chain = chain
+        self.session = None
+        self.token = None
+
+    def _login(self):
+        if self.session:
+            return
+        s = requests.Session()
+        s.headers.update(HEADERS)
+        r = _get(s, f"{self.BASE}/login")
+        token = re.search(r'name="csrftoken" content="([^"]+)"', r.text).group(1)
+        r = _post(s, f"{self.BASE}/login/user", data={
+            "r": "", "username": self.chain["user"], "password": "",
+            "Submit": "Sign in", "csrftoken": token,
+        })
+        self.token = re.search(r'name="csrftoken" content="([^"]+)"', r.text).group(1)
+        self.session = s
+
+    def _list(self, search):
+        self._login()
+        r = _post(self.session, f"{self.BASE}/file/json/dir", data={
+            "sEcho": 1, "iDisplayStart": 0, "iDisplayLength": 100000,
+            "sSearch": search, "cd": "/", "csrftoken": self.token,
+        })
+        return [row["name"] for row in r.json().get("aaData", [])]
+
+    def _download(self, name):
+        return _get(self.session, f"{self.BASE}/file/d/{name}").content
+
+    def stores(self):
+        names = sorted(n for n in self._list("Stores") if n.lower().startswith("stores"))
+        return list(parse_stores(self._download(names[-1]))) if names else []
+
+    def latest_price_files(self, store_ids):
+        latest = _latest(n for n in self._list("PriceFull") if n.lower().startswith("pricefull"))
+        return {
+            sid: (lambda name=latest[sid]: self._download(name))
+            for sid in store_ids if sid in latest
+        }
+
+
+class Carrefour:
+    BASE = "https://prices.carrefour.co.il"
+
+    def __init__(self, chain):
+        self.chain = chain
+        self.session = requests.Session()
+        self.session.headers.update(HEADERS)
+        self._files = None
+
+    def _listing(self):
+        """(date folder, [file names]) as listed on the portal's front page."""
+        if self._files is None:
+            text = _get(self.session, f"{self.BASE}/").text
+            folder = re.search(r"const path = '(\d{8})'", text)
+            self._files = (folder.group(1) if folder else "", re.findall(r'"name":"([^"]+)"', text))
+        return self._files
+
+    def stores(self):
+        folder, names = self._listing()
+        stores = sorted(n for n in names if n.startswith("Stores"))
+        if not stores:
+            return []
+        return list(parse_stores(_get(self.session, f"{self.BASE}/{folder}/{stores[-1]}").content))
+
+    def latest_price_files(self, store_ids):
+        folder, names = self._listing()
+        latest = _latest(n for n in names if n.startswith("PriceFull"))
+        return {
+            sid: (lambda name=latest[sid]: _get(self.session, f"{self.BASE}/{folder}/{name}").content)
+            for sid in store_ids if sid in latest
+        }

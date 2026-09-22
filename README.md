@@ -1,1 +1,49 @@
-# Alex
+# סל חדרה — השוואת מחירי סל קניות בסופרים בחדרה
+
+בוחרים מוצרים לסל, והמערכת מראה כמה יעלה הסל בכל סניף בחדרה, מדרגת את הסניפים
+מהזול ליקר, ומפרטת מחיר לכל מוצר בכל סניף.
+
+המחירים נלקחים מקובצי המחירים הרשמיים שכל רשת מחויבת לפרסם לפי חוק קידום התחרות
+בענף המזון ("חוק שקיפות המחירים").
+
+## רשתות וסניפים
+
+| רשת | פורטל | סניפים בחדרה (ספטמבר 2026) |
+|---|---|---|
+| שופרסל (דיל, יוניברס, BE) | prices.shufersal.co.il | 7 |
+| רמי לוי | url.publishedprices.co.il | 4 |
+| יוחננוף | url.publishedprices.co.il | 2 |
+| קרפור | prices.carrefour.co.il | 2 |
+| אושר עד | url.publishedprices.co.il | 1 |
+| קשת טעמים | url.publishedprices.co.il | 1 |
+| דור אלון (AM:PM, אלונית) | url.publishedprices.co.il | 3 |
+
+הסניפים נבחרים אוטומטית לפי קוד היישוב (6500) או לפי השם "חדרה" / "בית אליעזר" /
+"גבעת אולגה" בשם או בכתובת הסניף. אפשר לשנות אזור ב־`pricecompare/config.py`.
+
+## הרצה מקומית
+
+```bash
+pip install -r requirements.txt
+python -m pricecompare update     # מוריד מחירים עדכניים (כ־3 דקות) אל web/data.json
+python -m pricecompare serve      # http://localhost:8000
+```
+
+## עדכון יומי אוטומטי (GitHub Pages)
+
+`.github/workflows/update-prices.yml` מוריד את המחירים כל בוקר ומפרסם את האתר
+ב־GitHub Pages. כדי להפעיל: Settings → Pages → Source: **GitHub Actions**,
+ואז Actions → Update prices → Run workflow.
+
+## איך זה עובד
+
+- `pricecompare/sources.py` — הורדת קבצים משלושת הפורטלים (שופרסל, Cerberus, קרפור).
+- `pricecompare/parse.py` — פענוח קובצי XML (UTF‑8/UTF‑16, gzip, הבדלי שמות תגיות בין רשתות).
+- `pricecompare/build.py` — איחוד כל הסניפים לקובץ JSON דחוס אחד (כ־1MB ב־gzip).
+- `web/index.html` — האפליקציה. כל החישוב קורה בדפדפן; הסל נשמר בדפדפן.
+
+## מגבלות
+
+- ההשוואה לפי ברקוד. פירות, ירקות ומאפים בקוד פנימי של הרשת לא נכללים.
+- מחירים רגילים בלבד — ללא מבצעים ומחירי מועדון (קובצי Promo עוד לא נקראים).
+- רשתות בפורטלים אחרים (ויקטורי, מחסני השוק, חצי חינם ועוד) עוד לא נתמכות.
