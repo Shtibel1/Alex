@@ -8,6 +8,7 @@ Every source exposes the same two methods:
 import html
 import re
 import time
+from datetime import datetime, timedelta
 
 import requests
 
@@ -130,35 +131,49 @@ class Cerberus:
 
 class Carrefour:
     BASE = "https://prices.carrefour.co.il"
+    DAYS_BACK = 3  # right after midnight the new day's folder is almost empty
 
     def __init__(self, chain):
         self.chain = chain
         self.session = requests.Session()
         self.session.headers.update(HEADERS)
-        self._files = None
+        self._days = {}
 
-    def _listing(self):
-        """(date folder, [file names]) as listed on the portal's front page."""
-        if self._files is None:
-            text = _get(self.session, f"{self.BASE}/").text
+    def _listing(self, day=None):
+        """(date folder, [file names]) for a day (YYYYMMDD), default today."""
+        if day not in self._days:
+            text = _get(self.session, f"{self.BASE}/", params={"date": day} if day else None).text
             folder = re.search(r"const path = '(\d{8})'", text)
-            self._files = (folder.group(1) if folder else "", re.findall(r'"name":"([^"]+)"', text))
-        return self._files
+            self._days[day] = (folder.group(1) if folder else "", re.findall(r'"name":"([^"]+)"', text))
+        return self._days[day]
+
+    def _recent_days(self):
+        folder, _ = self._listing()
+        today = datetime.strptime(folder, "%Y%m%d") if folder else datetime.now()
+        for back in range(self.DAYS_BACK + 1):
+            yield None if back == 0 else (today - timedelta(days=back)).strftime("%Y%m%d")
 
     def stores(self):
-        folder, names = self._listing()
-        stores = sorted(n for n in names if n.startswith("Stores"))
-        if not stores:
-            return []
-        return list(parse_stores(_get(self.session, f"{self.BASE}/{folder}/{stores[-1]}").content))
+        for day in self._recent_days():
+            folder, names = self._listing(day)
+            stores = sorted(n for n in names if n.startswith("Stores"))
+            if stores:
+                return list(parse_stores(_get(self.session, f"{self.BASE}/{folder}/{stores[-1]}").content))
+        return []
 
     def latest_price_files(self, store_ids):
-        folder, names = self._listing()
-        latest = _latest(n for n in names if n.startswith("PriceFull"))
-        return {
-            sid: (lambda name=latest[sid]: _get(self.session, f"{self.BASE}/{folder}/{name}").content)
-            for sid in store_ids if sid in latest
-        }
+        out = {}
+        for day in self._recent_days():
+            missing = [sid for sid in store_ids if sid not in out]
+            if not missing:
+                break
+            folder, names = self._listing(day)
+            latest = _latest(n for n in names if n.startswith("PriceFull"))
+            for sid in missing:
+                if sid in latest:
+                    url = f"{self.BASE}/{folder}/{latest[sid]}"
+                    out[sid] = lambda url=url: _get(self.session, url).content
+        return out
 
 
 class Bina:

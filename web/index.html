@@ -95,6 +95,9 @@ h2 { font: 400 1.4rem/1.2 var(--display); margin: 0; text-wrap: balance; }
 .hit .add { grid-row: 1 / span 2; grid-column: 2; border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 6px; padding: 6px 12px; font-weight: 700; font-size: .92rem; }
 .hit .add[disabled] { background: none; color: var(--good); cursor: default; padding-inline: 4px; }
 .hint { color: var(--muted); font-size: .9rem; margin: 8px 2px 0; }
+.gtag { display: inline-block; font-size: .7rem; font-weight: 800; letter-spacing: .03em; background: var(--tag); color: var(--tag-ink); border-radius: 4px; padding: 0 6px; margin-inline-end: 6px; vertical-align: 2px; }
+.receipt .pick { display: block; color: var(--muted); font-size: .8rem; }
+.stale { color: var(--warn); font-weight: 600; }
 
 .quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .quick button { border: 1px dashed var(--line); background: none; border-radius: 999px; padding: 3px 12px; font-size: .9rem; color: var(--muted); }
@@ -263,8 +266,9 @@ details.chains-box summary b { color: var(--ink); }
       <div id="results"><p class="status">טוען מחירים…</p></div>
       <p class="note">
         המחירים מקובצי המחירים שהרשתות מפרסמות לפי חוק שקיפות המחירים, בלי מבצעים ובלי
-        מחירי מועדון. ההשוואה היא לפי ברקוד, ולכן פירות, ירקות ומאפים שנמכרים בקוד פנימי
-        של הרשת לא מופיעים. במוצרים שקילים המחיר הוא לק״ג.
+        מחירי מועדון. מוצרים ארוזים מושווים לפי ברקוד. מוצרים עם התווית <span class="gtag">כללי</span>,
+        כמו עוף, בשר, דגים, פירות וירקות, מושווים לפי שם: בכל סופר נלקח הפריט המתאים הזול ביותר,
+        ושמו מופיע בפירוט הסל. במוצרים שקילים המחיר הוא לק״ג.
       </p>
     </section>
   </div>
@@ -280,15 +284,15 @@ details.chains-box summary b { color: var(--ink); }
 <script>
 (() => {
   const EXAMPLE = [
+    ["g:chicken-breast", 1], ["g:veg-tomato", 1], ["g:veg-cucumber", 1], ["g:fruit-banana", 1], ["g:eggs-l-12", 1],
     ["7290004131074", 2], ["7290004127329", 2], ["7290000066318", 3], ["7290000176420", 1],
-    ["7290000211442", 1], ["7290000060880", 2], ["7290000144474", 1], ["7290000208428", 1],
-    ["7290106577282", 1], ["7290004122270", 1],
+    ["7290000060880", 2], ["7290106577282", 1],
   ];
-  const QUICK = ["חלב", "קוטג׳", "ביצים", "לחם", "גבינה צהובה", "במבה", "קפה", "אורז", "פסטה", "שמן", "טחינה", "נייר טואלט"];
+  const QUICK = ["חזה עוף", "עגבנייה", "מלפפון", "ביצים", "בננה", "בשר טחון", "חלב", "קוטג׳", "לחם", "אורז", "שמן", "נייר טואלט"];
   const KEY_BASKET = "hadera-basket-v1", KEY_OFF = "hadera-chains-off-v1", KEY_VIEW = "hadera-view-v1";
   const MAX_HITS = 40;
 
-  let P = [], S = [], PRICE = [], CHAINS = {}, byCode = new Map(), hay = [], pop = [];
+  let P = [], S = [], PRICE = [], PICK = [], CHAINS = {}, byCode = new Map(), hay = [], pop = [], generated = "";
   let basket = [], isExample = false, off = new Set(), open = null, view = "chain";
   let hitList = [], hitOn = 0, undoState = null, toastTimer;
 
@@ -318,7 +322,8 @@ details.chains-box summary b { color: var(--ink); }
   const active = () => S.map((s, i) => i).filter((i) => !off.has(S[i].chain));
   const weighted = (i) => P[i][4] === 1;
   const qtyText = (i, q) => (weighted(i) ? `${q}<small> ק״ג</small>` : `${q}`);
-  const describe = (p) => [p[2], p[3]].filter(Boolean).join(" · ");
+  const isGeneric = (i) => P[i][5] !== undefined;
+  const describe = (p) => (p[5] !== undefined ? `${p[5]} · המחיר הזול בכל סופר` : [p[2], p[3]].filter(Boolean).join(" · "));
 
   // Keep keyboard focus on the "same" control across re-renders.
   function withFocus(fn) {
@@ -350,7 +355,9 @@ details.chains-box summary b { color: var(--ink); }
         if (!tokens.every((t) => hay[i].includes(t))) continue;
         const name = norm(P[i][1]);
         // Names that start with the query beat names that merely contain it.
-        score = name.startsWith(tokens[0]) ? 0 : name.includes(" " + tokens[0]) ? 1 : 2;
+        // Generic products first: those whose own name has every word, then those matched via their category.
+        score = isGeneric(i) ? (tokens.every((t) => name.includes(t)) ? -2 : -1)
+          : name.startsWith(tokens[0]) ? 0 : name.includes(" " + tokens[0]) ? 1 : 2;
       }
       scored.push([score, pop[i], i]);
     }
@@ -376,8 +383,8 @@ details.chains-box summary b { color: var(--ink); }
         ? `<span class="num">₪${money(lo)}${hi !== lo ? "–" + money(hi) : ""}</span>${weighted(i) ? " לק״ג" : ""} · ${ps.length} סניפים`
         : "לא נמכר ברשתות שנבחרו";
       const had = inBasket.has(i);
-      return `<li class="hit${k === hitOn ? " on" : ""}" id="hit-${k}" role="option" aria-selected="${k === hitOn}" data-pick="${i}">
-        <span class="n">${esc(P[i][1])}</span>
+      return `<li class="hit${k === hitOn ? " on" : ""}${isGeneric(i) ? " gen" : ""}" id="hit-${k}" role="option" aria-selected="${k === hitOn}" data-pick="${i}">
+        <span class="n">${isGeneric(i) ? '<span class="gtag">כללי</span>' : ""}${esc(P[i][1])}</span>
         <span class="d">${describe(P[i]) ? esc(describe(P[i])) + " · " : ""}${range}</span>
         <button type="button" class="add" data-add="${i}" tabindex="-1" ${had ? "disabled" : ""}>${had ? "✓ בסל" : "הוספה"}</button></li>`;
     }).join("");
@@ -436,7 +443,7 @@ details.chains-box summary b { color: var(--ink); }
     const act = active();
     $("basket").innerHTML = basket.length ? basket.map(({ i, qty }) => {
       const lo = cheapestFor(i, act);
-      return `<li class="bi"><span class="n">${esc(P[i][1])}</span>
+      return `<li class="bi"><span class="n">${isGeneric(i) ? '<span class="gtag">כללי</span>' : ""}${esc(P[i][1])}</span>
         <span class="d">${describe(P[i]) ? `<span>${esc(describe(P[i]))}</span>` : ""}
           ${lo ? `<span class="from">מ־₪<span class="num">${money(lo)}</span>${weighted(i) ? " לק״ג" : ""}</span>` : `<span class="none">לא נמכר ברשתות שנבחרו</span>`}</span>
         <span class="qty"><button type="button" data-q="${i}" data-d="-1" aria-label="פחות ${esc(P[i][1])}">−</button><span aria-live="polite">${qtyText(i, qty)}</span><button type="button" data-q="${i}" data-d="1" aria-label="עוד ${esc(P[i][1])}">+</button></span>
@@ -547,6 +554,7 @@ details.chains-box summary b { color: var(--ink); }
     const sub = [];
     sub.push(r.missing ? `<span class="pill miss">חסרים ${r.missing}</span>` : `<span class="pill full">סל מלא</span>`);
     if (address(r.s)) sub.push(`<span>${esc(address(r.s))}</span>`);
+    if (isStale(r.s)) sub.push(`<span class="stale">מחירים מ־${esc(dayFmt(S[r.s].asof))}</span>`);
     if (r.others.length) sub.push(`<span>+${r.others.length} סניפים נוספים</span>`);
     return `<li class="row${first ? " first" : ""}${isOpen ? " open" : ""}">
       <button type="button" data-open="${esc(id)}" aria-expanded="${isOpen}">
@@ -559,6 +567,9 @@ details.chains-box summary b { color: var(--ink); }
       ${isOpen ? receipt(r, lo, hi) : ""}
     </li>`;
   }
+  // A store whose new price file wasn't out yet keeps its previous prices.
+  const isStale = (s) => S[s].asof && generated && new Date(generated) - new Date(S[s].asof) > 3 * 3600e3;
+  const dayFmt = (iso) => new Intl.DateTimeFormat("he-IL", { timeZone: "Asia/Jerusalem", day: "numeric", month: "numeric" }).format(new Date(iso));
   const withoutItems = (n) => (n === 1 ? "בלי מוצר אחד" : `בלי ${n} מוצרים`);
 
   function receipt(r, lo, hi) {
@@ -567,7 +578,8 @@ details.chains-box summary b { color: var(--ink); }
       if (!p) return `<div class="line"><span class="nm">${esc(P[i][1])}</span><span class="dots"></span><span class="na">לא נמכר כאן</span></div>`;
       const cls = p === lo.get(i) ? "lo" : p === hi.get(i) && lo.get(i) !== hi.get(i) ? "hi" : "";
       const q = qty !== 1 ? `<span class="qx">${qty}${weighted(i) ? " ק״ג" : ""} × ${money(p)} = </span>` : "";
-      return `<div class="line"><span class="nm">${esc(P[i][1])}</span><span class="dots"></span><span class="pr ${cls}">${q}₪${money(Math.round(p * qty))}</span></div>`;
+      const pick = PICK[r.s].get(i);
+      return `<div class="line"><span class="nm">${esc(P[i][1])}${pick ? `<span class="pick">${esc(pick)}</span>` : ""}</span><span class="dots"></span><span class="pr ${cls}">${q}₪${money(Math.round(p * qty))}</span></div>`;
     }).join("");
     const others = r.others.length
       ? `<ul class="others">${r.others.map((o) => `<li><span>${esc(branchName(o.s))}${o.missing ? ` · חסרים ${o.missing}` : ""}</span>${shekel(o.total)}</li>`).join("")}</ul>` : "";
@@ -639,15 +651,22 @@ details.chains-box summary b { color: var(--ink); }
     if (!r.ok) throw new Error(r.status);
     return r.json();
   }).then((D) => {
-    P = D.products; S = D.stores; CHAINS = D.chains;
+    P = D.products; S = D.stores; CHAINS = D.chains; generated = D.generated;
+    // Generic fresh products share the product list, keyed "g:<key>"; p[5] holds their category.
+    const base = P.length;
+    for (const [key, name, cat, unit] of D.generics || []) P.push(["g:" + key, name, "", "", unit === "kg" ? 1 : 0, cat]);
     pop = new Uint8Array(P.length);
     PRICE = D.prices.map((flat) => {
       const a = new Int32Array(P.length);
       for (let k = 0, i = 0; k < flat.length; k += 2) { i += flat[k]; a[i] = flat[k + 1]; pop[i]++; }
       return a;
     });
+    PICK = S.map(() => new Map());
+    (D.gprices || []).forEach((list, s) => {
+      for (const [g, price, name] of list) { PRICE[s][base + g] = price; PICK[s].set(base + g, name); pop[base + g]++; }
+    });
     P.forEach((p, i) => byCode.set(p[0], i));
-    hay = P.map((p) => norm(p[1] + " " + p[2] + " " + p[0]));
+    hay = P.map((p) => norm(p[1] + " " + p[2] + " " + (p[5] ?? p[0])));
 
     const when = new Date(D.generated);
     const fmt = new Intl.DateTimeFormat("he-IL", { timeZone: "Asia/Jerusalem", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" });

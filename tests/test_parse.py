@@ -25,12 +25,12 @@ STORES = """<Root><SubChains><SubChain><Stores>
 
 
 class ParseTest(unittest.TestCase):
-    def test_prices_keep_only_barcoded_priced_items(self):
+    def test_prices_keep_priced_items_and_flag_internal_codes(self):
         items = list(parse_prices(gzip.compress(PRICES.encode())))
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0]["barcode"], "7290000066318")
+        self.assertEqual([i["barcode"] for i in items], ["7290000066318", None])
         self.assertEqual(items[0]["price"], 4.9)
         self.assertEqual(items[0]["manufacturer"], "אסם")
+        self.assertEqual(items[1]["code"], "3329")
 
     def test_utf16_stores_and_region_filter(self):
         stores = list(parse_stores(b"\xff\xfe" + STORES.encode("utf-16-le")))

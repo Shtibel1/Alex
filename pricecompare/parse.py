@@ -77,16 +77,21 @@ def _to_float(value):
 
 
 def parse_prices(data: bytes):
-    """Yield one dict per item from a PriceFull file."""
+    """Yield one dict per priced item from a PriceFull file.
+
+    `barcode` is the cross-chain barcode, or None for the chain's internal
+    codes (produce, meat, bakery); those still count for generic products.
+    """
     root = ET.fromstring(decode(data))
     for item in _iter_tag(root, "item"):
         f = _children(item)
-        barcode = normalize_barcode(f.get("itemcode", ""))
         price = _to_float(f.get("itemprice"))
-        if not barcode or not price or price <= 0:
+        if not price or price <= 0:
             continue
+        code = f.get("itemcode", "").strip()
         yield {
-            "barcode": barcode,
+            "code": code.lstrip("0"),
+            "barcode": normalize_barcode(code),
             "name": " ".join((f.get("itemname") or f.get("itemnm") or "").split()),
             "manufacturer": " ".join(f.get("manufacturername", f.get("manufacturename", "")).split()),
             "quantity": _to_float(f.get("quantity")),
