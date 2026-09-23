@@ -1,8 +1,9 @@
 """Downloaders for the chains' price portals.
 
-Every source exposes the same two methods:
+Every source exposes the same methods:
     stores()                 -> list of store dicts (see parse.parse_stores)
     latest_price_files(ids)  -> {store_id: downloader} for the newest PriceFull
+    latest_promo_files(ids)  -> {store_id: downloader} for the newest PromoFull
 """
 
 import html
@@ -57,7 +58,7 @@ def _latest(names):
 
 class Shufersal:
     BASE = "https://prices.shufersal.co.il/FileObject/UpdateCategory"
-    CAT_PRICEFULL, CAT_STORES = 2, 5
+    CAT_PRICEFULL, CAT_PROMOFULL, CAT_STORES = 2, 4, 5
 
     def __init__(self, chain):
         self.chain = chain
@@ -73,9 +74,15 @@ class Shufersal:
         return list(parse_stores(_get(self.session, url).content))
 
     def latest_price_files(self, store_ids):
+        return self._latest_files(self.CAT_PRICEFULL, store_ids)
+
+    def latest_promo_files(self, store_ids):
+        return self._latest_files(self.CAT_PROMOFULL, store_ids)
+
+    def _latest_files(self, cat, store_ids):
         out = {}
         for store_id in store_ids:
-            links = self._links(self.CAT_PRICEFULL, store_id)
+            links = self._links(cat, store_id)
             by_name = {u.split("?")[0].rsplit("/", 1)[-1]: u for u in links}
             latest = _latest(by_name).get(store_id)
             if latest:
@@ -122,7 +129,13 @@ class Cerberus:
         return list(parse_stores(self._download(names[-1]))) if names else []
 
     def latest_price_files(self, store_ids):
-        latest = _latest(n for n in self._list("PriceFull") if n.lower().startswith("pricefull"))
+        return self._latest_files("PriceFull", store_ids)
+
+    def latest_promo_files(self, store_ids):
+        return self._latest_files("PromoFull", store_ids)
+
+    def _latest_files(self, prefix, store_ids):
+        latest = _latest(n for n in self._list(prefix) if n.lower().startswith(prefix.lower()))
         return {
             sid: (lambda name=latest[sid]: self._download(name))
             for sid in store_ids if sid in latest
@@ -162,13 +175,19 @@ class Carrefour:
         return []
 
     def latest_price_files(self, store_ids):
+        return self._latest_files("PriceFull", store_ids)
+
+    def latest_promo_files(self, store_ids):
+        return self._latest_files("PromoFull", store_ids)
+
+    def _latest_files(self, prefix, store_ids):
         out = {}
         for day in self._recent_days():
             missing = [sid for sid in store_ids if sid not in out]
             if not missing:
                 break
             folder, names = self._listing(day)
-            latest = _latest(n for n in names if n.startswith("PriceFull"))
+            latest = _latest(n for n in names if n.startswith(prefix))
             for sid in missing:
                 if sid in latest:
                     url = f"{self.BASE}/{folder}/{latest[sid]}"
@@ -179,7 +198,7 @@ class Carrefour:
 class Bina:
     """Chains hosted by Bina Projects (<prefix>.binaprojects.com)."""
 
-    FILE_TYPES = {"stores": 1, "pricefull": 4}
+    FILE_TYPES = {"stores": 1, "pricefull": 4, "promofull": 5}
 
     def __init__(self, chain):
         self.chain = chain
@@ -203,9 +222,15 @@ class Bina:
         return list(parse_stores(self._download(names[-1]))) if names else []
 
     def latest_price_files(self, store_ids):
+        return self._latest_files("pricefull", store_ids)
+
+    def latest_promo_files(self, store_ids):
+        return self._latest_files("promofull", store_ids)
+
+    def _latest_files(self, file_type, store_ids):
         out = {}
         for store_id in store_ids:
-            latest = _latest(self._list("pricefull", store_id)).get(store_id)
+            latest = _latest(self._list(file_type, store_id)).get(store_id)
             if latest:
                 out[store_id] = lambda name=latest: self._download(name)
         return out
