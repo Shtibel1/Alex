@@ -27,6 +27,9 @@
   --bad: #b3432b;
   --bad-soft: #f6e0da;
   --gap: #e9a23b;
+  --sale: #c8321f;
+  --sale-ink: #ffffff;
+  --sale-soft: #fbe4de;
   --shadow: 0 1px 0 rgba(23, 32, 27, .04), 0 8px 24px -12px rgba(23, 32, 27, .18);
   --display: "Secular One", "Assistant", "Arial Hebrew", sans-serif;
   --body: "Assistant", "Segoe UI", "Arial Hebrew", Arial, sans-serif;
@@ -39,6 +42,7 @@
     --muted: #9ba7a0; --faint: #6f7b74; --line: #2a332f; --tag: #f0c419; --tag-deep: #d9a900;
     --tag-ink: #1d1a0c; --accent: #5fcb9e; --accent-ink: #0b1a13; --good: #5cc796; --good-soft: #163427;
     --warn: #e0a24a; --bad: #e8816a; --bad-soft: #3a211b; --gap: #c98a2e;
+    --sale: #f0785f; --sale-ink: #1f0c07; --sale-soft: #3d1f18;
     --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 10px 28px -14px rgba(0, 0, 0, .7);
     color-scheme: dark;
   }
@@ -48,6 +52,7 @@
   --muted: #9ba7a0; --faint: #6f7b74; --line: #2a332f; --tag: #f0c419; --tag-deep: #d9a900;
   --tag-ink: #1d1a0c; --accent: #5fcb9e; --accent-ink: #0b1a13; --good: #5cc796; --good-soft: #163427;
   --warn: #e0a24a; --bad: #e8816a; --bad-soft: #3a211b; --gap: #c98a2e;
+  --sale: #f0785f; --sale-ink: #1f0c07; --sale-soft: #3d1f18;
   --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 10px 28px -14px rgba(0, 0, 0, .7);
   color-scheme: dark;
 }
@@ -95,6 +100,18 @@ h2 { font: 400 1.4rem/1.2 var(--display); margin: 0; text-wrap: balance; }
 .hit .add { grid-row: 1 / span 2; grid-column: 2; border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 6px; padding: 6px 12px; font-weight: 700; font-size: .92rem; }
 .hit .add[disabled] { background: none; color: var(--good); cursor: default; padding-inline: 4px; }
 .hint { color: var(--muted); font-size: .9rem; margin: 8px 2px 0; }
+.stag { display: inline-block; font-size: .7rem; font-weight: 800; letter-spacing: .03em; background: var(--sale); color: var(--sale-ink); border-radius: 4px; padding: 0 6px; margin-inline-end: 6px; vertical-align: 2px; }
+.hit .deal { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; font-size: .85rem; color: var(--sale); font-weight: 600; }
+.hit .deal .num { color: inherit; }
+.hit .more { border: 0; background: none; padding: 0; color: var(--accent); font-weight: 700; font-size: .85rem; text-decoration: underline; text-underline-offset: 2px; }
+.deals { grid-column: 1 / -1; list-style: none; margin: 4px 0 2px; padding: 6px 10px; background: var(--sale-soft); border-radius: 6px; font-size: .85rem; cursor: default; }
+.deals li { padding: 4px 0; }
+.deals li + li { border-top: 1px dashed var(--line); }
+.deals .w { font-weight: 700; }
+.deals .o { color: var(--sale); font-weight: 700; }
+.deals .x { color: var(--muted); }
+.deals .x s { text-decoration-thickness: 1px; }
+.deals .t { display: block; color: var(--muted); font-size: .78rem; overflow-wrap: anywhere; }
 .gtag { display: inline-block; font-size: .7rem; font-weight: 800; letter-spacing: .03em; background: var(--tag); color: var(--tag-ink); border-radius: 4px; padding: 0 6px; margin-inline-end: 6px; vertical-align: 2px; }
 .receipt .pick { display: block; color: var(--muted); font-size: .8rem; }
 .stale { color: var(--warn); font-weight: 600; }
@@ -265,8 +282,10 @@ details.chains-box summary b { color: var(--ink); }
       </details>
       <div id="results"><p class="status">טוען מחירים…</p></div>
       <p class="note">
-        המחירים מקובצי המחירים שהרשתות מפרסמות לפי חוק שקיפות המחירים, בלי מבצעים ובלי
-        מחירי מועדון. מוצרים ארוזים מושווים לפי ברקוד. מוצרים עם התווית <span class="gtag">כללי</span>,
+        המחירים מקובצי המחירים שהרשתות מפרסמות לפי חוק שקיפות המחירים. מחיר הסל מחושב לפי
+        המחירים הרגילים. מבצעים שפתוחים לכל הלקוחות (מחיר מבצע, כמה יחידות במחיר אחד, 1+1)
+        מופיעים בתוצאות החיפוש עם התווית <span class="stag">מבצע</span>, בלי מבצעי מועדון, אשראי וקופונים.
+        מוצרים ארוזים מושווים לפי ברקוד. מוצרים עם התווית <span class="gtag">כללי</span>,
         כמו עוף, בשר, דגים, פירות וירקות, מושווים לפי שם: בכל סופר נלקח הפריט המתאים הזול ביותר,
         ושמו מופיע בפירוט הסל. במוצרים שקילים המחיר הוא לק״ג.
       </p>
@@ -293,6 +312,7 @@ details.chains-box summary b { color: var(--ink); }
   const MAX_HITS = 40;
 
   let P = [], S = [], PRICE = [], PICK = [], CHAINS = {}, byCode = new Map(), hay = [], pop = [], generated = "";
+  let DEALS = [], DEAL_AT = new Map(), dealsOpen = new Set();
   let basket = [], isExample = false, off = new Set(), open = null, view = "chain";
   let hitList = [], hitOn = 0, undoState = null, toastTimer;
 
@@ -370,6 +390,67 @@ details.chains-box summary b { color: var(--ink); }
       : "לא מצאנו מוצר כזה. נסו מילה אחרת, שם יצרן או ברקוד.";
   }
 
+  // ---------- promotions ----------
+  // A deal is [description, last day, qty, total (agorot), get, percent, min basket (agorot)],
+  // see pricecompare/build.py.
+  const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem" }).format(new Date());
+  const short = (ag) => (ag % 100 ? money(ag) : String(ag / 100));
+  const pctText = (p) => `${Math.round(p * 10) / 10}%`;
+  const until = (iso) => { const [, m, d] = iso.split("-"); return `${+d}.${+m}`; };
+  function dealUnit(d, reg) {
+    const [, , qty, total, get, pct] = d;
+    if (get) return (qty * reg + get * reg * (1 - pct / 100)) / (qty + get);
+    if (total) return total / qty;
+    return reg * (1 - pct / 100);
+  }
+  function dealLabel(d) {
+    const [, , qty, total, get, pct] = d;
+    if (get) {
+      if (pct >= 100) return `<span class="num">${qty}+${get}</span> מתנה`;
+      return qty === 1 && get === 1 ? `השני ב־${pctText(pct)} הנחה` : `קונים ${qty}, ${get} נוספים ב־${pctText(pct)} הנחה`;
+    }
+    if (total) return qty > 1 ? `${qty} ב־<span class="num">₪${short(total)}</span>` : `ב־<span class="num">₪${short(total)}</span>`;
+    return `${pctText(pct)} הנחה`;
+  }
+  const minBasket = (d) => (d[6] ? ` בקנייה מעל <span class="num">₪${short(d[6])}</span>` : "");
+  // Current deals on product i in the selected chains: [{s, d, unit, reg}], best first.
+  function dealsFor(i, act) {
+    const at = DEAL_AT.get(i);
+    if (!at) return [];
+    const on = new Set(act), day = today(), out = [];
+    for (const [s, d] of at) {
+      const reg = PRICE[s][i];
+      if (!on.has(s) || !reg || DEALS[d][1] < day) continue;
+      const unit = dealUnit(DEALS[d], reg);
+      if (unit < reg) out.push({ s, d, unit, reg });
+    }
+    return out.sort((a, b) => a.unit - b.unit);
+  }
+  function dealSummary(i, found) {
+    // Deals that need a large total purchase ("ב־1 ש״ח מעל 100") aren't the headline.
+    const best = found.find((f) => !DEALS[f.d][6]) || found[0];
+    const stores = new Set(found.map((f) => f.s)).size;
+    return `<span class="deal"><span>מבצע ב־${stores === 1 ? "סניף אחד" : `${stores} סניפים`}</span>
+      <span>הכי משתלם: <span class="num">₪${money(Math.round(best.unit))}</span>${weighted(i) ? " לק״ג" : " ליח׳"} ב${esc(chainName(best.s))}${minBasket(DEALS[best.d])}</span>
+      <button type="button" class="more" data-deals="${i}" tabindex="-1" aria-expanded="${dealsOpen.has(i)}">${dealsOpen.has(i) ? "הסתרה" : "כל המבצעים"}</button></span>`;
+  }
+  // One line per chain and deal; branches of a chain usually run the same deals.
+  function dealList(i, found) {
+    const groups = new Map();
+    for (const f of found) {
+      const k = `${S[f.s].chain}|${f.d}`;
+      if (!groups.has(k)) groups.set(k, { ...f, stores: [] });
+      groups.get(k).stores.push(f.s);
+    }
+    return `<ul class="deals">${[...groups.values()].map((g) => {
+      const d = DEALS[g.d];
+      const where = g.stores.length === 1 ? branchName(g.s) : `${g.stores.length} סניפים`;
+      return `<li><span class="w">${esc(chainName(g.s))}</span> <span class="x">· ${esc(where)}</span><br>
+        <span class="o">${dealLabel(d)}${minBasket(d)}</span> <span class="x">· <span class="num">₪${money(Math.round(g.unit))}</span>${weighted(i) ? " לק״ג" : " ליח׳"} במקום <s class="num">₪${money(g.reg)}</s> · עד ${until(d[1])}</span>
+        ${d[0] ? `<span class="t">${esc(d[0])}</span>` : ""}</li>`;
+    }).join("")}</ul>`;
+  }
+
   function renderHits() {
     const hits = $("hits");
     const act = active();
@@ -383,10 +464,13 @@ details.chains-box summary b { color: var(--ink); }
         ? `<span class="num">₪${money(lo)}${hi !== lo ? "–" + money(hi) : ""}</span>${weighted(i) ? " לק״ג" : ""} · ${ps.length} סניפים`
         : "לא נמכר ברשתות שנבחרו";
       const had = inBasket.has(i);
+      const found = dealsFor(i, act);
       return `<li class="hit${k === hitOn ? " on" : ""}${isGeneric(i) ? " gen" : ""}" id="hit-${k}" role="option" aria-selected="${k === hitOn}" data-pick="${i}">
-        <span class="n">${isGeneric(i) ? '<span class="gtag">כללי</span>' : ""}${esc(P[i][1])}</span>
+        <span class="n">${isGeneric(i) ? '<span class="gtag">כללי</span>' : ""}${found.length ? '<span class="stag">מבצע</span>' : ""}${esc(P[i][1])}</span>
         <span class="d">${describe(P[i]) ? esc(describe(P[i])) + " · " : ""}${range}</span>
-        <button type="button" class="add" data-add="${i}" tabindex="-1" ${had ? "disabled" : ""}>${had ? "✓ בסל" : "הוספה"}</button></li>`;
+        <button type="button" class="add" data-add="${i}" tabindex="-1" ${had ? "disabled" : ""}>${had ? "✓ בסל" : "הוספה"}</button>
+        ${found.length ? dealSummary(i, found) : ""}
+        ${found.length && dealsOpen.has(i) ? dealList(i, found) : ""}</li>`;
     }).join("");
     if (hitList.length) $("q").setAttribute("aria-activedescendant", `hit-${hitOn}`); else $("q").removeAttribute("aria-activedescendant");
   }
@@ -605,6 +689,13 @@ details.chains-box summary b { color: var(--ink); }
 
   // ---------- events ----------
   document.addEventListener("click", (e) => {
+    const more = e.target.closest("[data-deals]");
+    if (more) {
+      const i = +more.dataset.deals;
+      dealsOpen.has(i) ? dealsOpen.delete(i) : dealsOpen.add(i);
+      renderHits(); $("q").focus({ preventScroll: true }); return;
+    }
+    if (e.target.closest(".deals")) return;
     const pick = e.target.closest("[data-pick]");
     if (pick && !e.target.closest("[disabled]")) { add(+pick.dataset.pick); $("q").focus({ preventScroll: true }); return; }
     const t = e.target.closest("button");
@@ -664,6 +755,15 @@ details.chains-box summary b { color: var(--ink); }
     PICK = S.map(() => new Map());
     (D.gprices || []).forEach((list, s) => {
       for (const [g, price, name] of list) { PRICE[s][base + g] = price; PICK[s].set(base + g, name); pop[base + g]++; }
+    });
+    // Promotions: DEAL_AT maps a product to its [store, deal] pairs.
+    DEALS = D.promos || [];
+    (D.sprices || []).forEach((flat, s) => {
+      for (let k = 0, i = 0; k < flat.length; k += 2) {
+        i += flat[k];
+        if (!DEAL_AT.has(i)) DEAL_AT.set(i, []);
+        DEAL_AT.get(i).push([s, flat[k + 1]]);
+      }
     });
     P.forEach((p, i) => byCode.set(p[0], i));
     hay = P.map((p) => norm(p[1] + " " + p[2] + " " + (p[5] ?? p[0])));
