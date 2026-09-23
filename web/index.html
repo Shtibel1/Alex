@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>סל חדרה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;600&family=Secular+One&display=swap">
+<style>
+:root {
+  --ground: #eef1ec;
+  --surface: #ffffff;
+  --sunken: #e4e9e2;
+  --ink: #17201b;
+  --muted: #5b6760;
+  --faint: #8a958e;
+  --line: #d6ddd5;
+  --tag: #ffd233;
+  --tag-deep: #f0b800;
+  --tag-ink: #1d1a0c;
+  --accent: #0f5b45;
+  --accent-ink: #ffffff;
+  --good: #13744b;
+  --good-soft: #d9efe3;
+  --warn: #b0660c;
+  --bad: #b3432b;
+  --bad-soft: #f6e0da;
+  --gap: #e9a23b;
+  --shadow: 0 1px 0 rgba(23, 32, 27, .04), 0 8px 24px -12px rgba(23, 32, 27, .18);
+  --display: "Secular One", "Assistant", "Arial Hebrew", sans-serif;
+  --body: "Assistant", "Segoe UI", "Arial Hebrew", Arial, sans-serif;
+  --num: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0f1311; --surface: #171d1a; --sunken: #212824; --ink: #e5ebe7;
+    --muted: #9ba7a0; --faint: #6f7b74; --line: #2a332f; --tag: #f0c419; --tag-deep: #d9a900;
+    --tag-ink: #1d1a0c; --accent: #5fcb9e; --accent-ink: #0b1a13; --good: #5cc796; --good-soft: #163427;
+    --warn: #e0a24a; --bad: #e8816a; --bad-soft: #3a211b; --gap: #c98a2e;
+    --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 10px 28px -14px rgba(0, 0, 0, .7);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0f1311; --surface: #171d1a; --sunken: #212824; --ink: #e5ebe7;
+  --muted: #9ba7a0; --faint: #6f7b74; --line: #2a332f; --tag: #f0c419; --tag-deep: #d9a900;
+  --tag-ink: #1d1a0c; --accent: #5fcb9e; --accent-ink: #0b1a13; --good: #5cc796; --good-soft: #163427;
+  --warn: #e0a24a; --bad: #e8816a; --bad-soft: #3a211b; --gap: #c98a2e;
+  --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 10px 28px -14px rgba(0, 0, 0, .7);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 16px/1.5 var(--body); -webkit-text-size-adjust: 100%; }
+.wrap { max-width: 1200px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.num { font-family: var(--num); font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; white-space: nowrap; }
+.label { font-size: .78rem; letter-spacing: .05em; color: var(--muted); font-weight: 700; }
+h2 { font: 400 1.4rem/1.2 var(--display); margin: 0; text-wrap: balance; }
+
+/* Header */
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 32px; padding-bottom: 20px; border-bottom: 2px solid var(--ink); }
+.brand h1 { font: 400 clamp(2.2rem, 6vw, 3.2rem)/.95 var(--display); margin: 0; letter-spacing: -0.01em; }
+.brand h1 span { background: var(--tag); color: var(--tag-ink); padding: 0 .16em; border-radius: 2px; }
+.brand p { margin: 8px 0 0; color: var(--muted); font-size: 1.02rem; max-width: 44ch; text-wrap: pretty; }
+.meta { color: var(--muted); font-size: .92rem; display: flex; flex-direction: column; gap: 2px; text-align: end; }
+.meta b { color: var(--ink); font-weight: 700; }
+@media (max-width: 640px) { .meta { text-align: start; } }
+
+.layout { display: grid; grid-template-columns: minmax(0, 390px) minmax(0, 1fr); gap: 32px; margin-top: 28px; align-items: start; }
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+
+/* Basket panel */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; box-shadow: var(--shadow); }
+@media (min-width: 901px) { .panel { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); max-height: calc(100vh - 32px); display: flex; flex-direction: column; } .basket-scroll { overflow-y: auto; min-height: 0; margin-inline: -6px; padding-inline: 6px; } }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.search { position: relative; }
+.field { position: relative; }
+.field svg { position: absolute; inset-inline-start: 12px; top: 50%; translate: 0 -50%; width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+.field input { width: 100%; padding: 12px 14px; padding-inline-start: 38px; border: 2px solid var(--ink); border-radius: 6px; background: var(--surface); font-size: 1.05rem; }
+.field input::placeholder { color: var(--faint); }
+.field input::-webkit-search-cancel-button { cursor: pointer; }
+.hits { list-style: none; margin: 8px 0 0; padding: 0; max-height: min(360px, 50vh); overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.hit { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 2px 12px; padding: 9px 12px; border-bottom: 1px solid var(--line); align-items: center; cursor: pointer; }
+.hit:last-child { border-bottom: 0; }
+.hit.on, .hit:hover { background: var(--sunken); }
+.hit, .bi [data-info] { -webkit-tap-highlight-color: transparent; }
+.hit .n { font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.hit .th { grid-row: 1 / span 2; }
+.hit .d { grid-column: 2; color: var(--muted); font-size: .85rem; }
+.hit .d .num { color: var(--ink); }
+.hit .add { grid-row: 1 / span 2; grid-column: 3; border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 6px; padding: 6px 12px; font-weight: 700; font-size: .92rem; }
+.hit .add[disabled] { background: none; color: var(--good); cursor: default; padding-inline: 4px; }
+.hint { color: var(--muted); font-size: .9rem; margin: 8px 2px 0; }
+
+/* Product thumbnails: sprite cells, emoji for generic fresh products, a letter when there is no photo */
+.th { flex: none; width: 48px; height: 48px; border-radius: 8px; background-color: #fff; background-repeat: no-repeat; border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; }
+.th.emoji { font-size: 28px; line-height: 1; background: var(--sunken); }
+.th.none { background: var(--sunken); color: var(--faint); font: 400 1.3rem var(--display); }
+.th.sm { width: 40px; height: 40px; border-radius: 6px; }
+.th.sm.emoji { font-size: 22px; }
+.th.lg { width: 96px; height: 96px; border-radius: 12px; }
+.th.lg.emoji { font-size: 56px; }
+.gtag { display: inline-block; font-size: .7rem; font-weight: 800; letter-spacing: .03em; background: var(--tag); color: var(--tag-ink); border-radius: 4px; padding: 0 6px; margin-inline-end: 6px; vertical-align: 2px; }
+.receipt .pick { display: block; color: var(--muted); font-size: .8rem; }
+.stale { color: var(--warn); font-weight: 600; }
+
+.quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.quick button { border: 1px dashed var(--line); background: none; border-radius: 999px; padding: 3px 12px; font-size: .9rem; color: var(--muted); }
+.quick button:hover { border-style: solid; color: var(--ink); }
+
+.basket-head { display: flex; justify-content: space-between; align-items: baseline; margin-top: 18px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); }
+.linkbtn { border: 0; background: none; color: var(--accent); font-weight: 700; padding: 4px 2px; font-size: .92rem; }
+.example { background: var(--tag); color: var(--tag-ink); border-radius: 6px; padding: 9px 12px; font-size: .9rem; margin-top: 10px; line-height: 1.4; }
+.example .linkbtn { color: var(--tag-ink); text-decoration: underline; padding: 0; font-size: inherit; }
+.basket { list-style: none; margin: 0; padding: 0; }
+.bi { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto 30px; gap: 2px 10px; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+.bi .n { font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.bi .th { grid-row: 1 / span 2; cursor: pointer; }
+.bi .n { cursor: pointer; }
+.bi .d { grid-column: 2; color: var(--muted); font-size: .84rem; display: flex; flex-wrap: wrap; gap: 0 8px; }
+.bi .from { color: var(--good); font-weight: 600; }
+.bi .none { color: var(--bad); font-weight: 600; }
+.qty { grid-row: 1 / span 2; grid-column: 3; display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.qty button { width: 32px; height: 32px; border: 0; background: none; font-size: 1.15rem; line-height: 1; color: var(--muted); }
+.qty button:hover { color: var(--ink); }
+.qty span { min-width: 3.2ch; text-align: center; font: 600 .95rem var(--num); }
+.qty small { font-family: var(--body); font-size: .72rem; color: var(--muted); }
+.rm { grid-row: 1 / span 2; grid-column: 4; border: 0; background: none; color: var(--faint); width: 30px; height: 30px; border-radius: 6px; display: grid; place-items: center; }
+.rm:hover { color: var(--bad); background: var(--bad-soft); }
+.rm svg { width: 16px; height: 16px; }
+.empty { color: var(--muted); padding: 16px 0 6px; }
+
+/* Results */
+.res-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 16px; margin-bottom: 14px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; padding: 2px; background: var(--surface); }
+.seg button { border: 0; background: none; padding: 4px 12px; border-radius: 4px; font-size: .9rem; color: var(--muted); font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--ground); }
+details.chains-box { margin-bottom: 16px; }
+details.chains-box summary { cursor: pointer; color: var(--muted); font-size: .92rem; font-weight: 600; width: fit-content; }
+details.chains-box summary b { color: var(--ink); }
+.chains { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px 4px 10px; font-size: .9rem; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.chip::before { content: ""; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--faint); flex: none; }
+.chip[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); }
+.chip[aria-pressed="true"]::before { background: var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat; border-color: var(--ink); }
+
+/* Winner = shelf price tag */
+.tag { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 20px; align-items: end; background: var(--tag); color: var(--tag-ink); padding: 20px 22px 0; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; }
+.tag .eyebrow { grid-column: 1 / -1; font-size: .78rem; font-weight: 800; letter-spacing: .08em; opacity: .75; }
+.tag .who { font: 400 clamp(1.45rem, 3.4vw, 1.9rem)/1.1 var(--display); overflow-wrap: anywhere; }
+.tag .where { grid-column: 1; font-size: .95rem; opacity: .82; }
+.tag .price { grid-row: 2 / span 2; grid-column: 2; font: 600 clamp(2.1rem, 5vw, 2.8rem)/1 var(--num); letter-spacing: -.02em; }
+.tag .price small { font-size: .5em; margin-inline-end: 2px; }
+.tag .strip { grid-column: 1 / -1; margin: 14px -22px 0; padding: 9px 22px; background: var(--tag-deep); font-size: .92rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; }
+.tag .strip b { font-family: var(--num); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 22px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font-size: .92rem; color: var(--muted); }
+.fact b { color: var(--ink); font-family: var(--num); font-weight: 600; }
+
+/* Ranking */
+.rank { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); }
+.row + .row { border-top: 1px solid var(--line); }
+.row > button { width: 100%; display: grid; grid-template-columns: 2.2em minmax(0, 1fr) auto; gap: 2px 14px; align-items: center; text-align: start; background: none; border: 0; padding: 14px 16px 14px 12px; }
+.row > button:hover { background: var(--sunken); }
+.row.open > button { background: var(--sunken); }
+.pos { font: 600 .95rem var(--num); color: var(--faint); grid-row: 1 / span 3; align-self: start; padding-top: 2px; }
+.row.first .pos { color: var(--good); }
+.store { font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.store small { font-weight: 400; color: var(--muted); font-size: .92rem; }
+.tot { font: 600 1.15rem var(--num); grid-row: 1 / span 2; grid-column: 3; text-align: end; }
+.tot small { display: block; font: 700 .8rem var(--body); direction: rtl; color: var(--warn); margin-top: 2px; }
+.tot.partial { color: var(--muted); }
+.sub { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: .85rem; color: var(--muted); }
+.pill { font-size: .76rem; font-weight: 800; padding: 1px 8px; border-radius: 999px; }
+.pill.full { background: var(--good-soft); color: var(--good); }
+.pill.miss { background: var(--bad-soft); color: var(--bad); }
+.gapbar { grid-column: 2 / span 2; display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.gapbar .track { flex: 1; height: 6px; background: var(--sunken); border-radius: 3px; overflow: hidden; }
+.row.open .gapbar .track { background: var(--surface); }
+.gapbar i { display: block; height: 100%; background: var(--gap); border-radius: 3px; min-width: 3px; }
+.row.first .gapbar i { background: var(--good); }
+.gapbar > span:not(.track) { font-size: .78rem; color: var(--muted); min-width: 7.5em; text-align: end; }
+.chev { width: 14px; height: 14px; color: var(--faint); transition: rotate .15s; flex: none; }
+.row.open .chev { rotate: 180deg; }
+
+/* Receipt */
+.receipt { margin: 0 16px 16px; margin-inline-start: calc(2.2em + 26px); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; font-size: .92rem; }
+.receipt .line { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; }
+.receipt .line .nm { overflow-wrap: anywhere; }
+.receipt .line .dots { flex: 1; border-bottom: 1px dotted var(--faint); translate: 0 -4px; min-width: 12px; }
+.receipt .line .pr { font-family: var(--num); white-space: nowrap; direction: ltr; unicode-bidi: isolate; }
+.receipt .qx { color: var(--muted); font-size: .85em; }
+.receipt .lo { color: var(--good); font-weight: 600; }
+.receipt .hi { color: var(--bad); }
+.receipt .na { color: var(--bad); font-family: var(--body); font-style: normal; font-size: .9em; }
+.receipt .sum { border-top: 2px dashed var(--line); margin-top: 6px; padding-top: 8px; font-weight: 800; }
+.receipt .legend { margin-top: 8px; color: var(--muted); font-size: .8rem; display: flex; gap: 12px; flex-wrap: wrap; }
+.others { margin: 10px 0 0; padding: 0; list-style: none; font-size: .88rem; color: var(--muted); }
+.others li { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
+
+.note { color: var(--muted); font-size: .88rem; margin-top: 18px; max-width: 68ch; }
+.status { padding: 32px 20px; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: 8px; text-align: center; }
+
+/* Product sheet: every store's price for one product */
+.sheet { border: 0; padding: 0; width: min(560px, 100%); max-height: min(88vh, 900px); background: var(--surface); color: var(--ink); border-radius: 14px; box-shadow: 0 20px 60px -20px rgba(0,0,0,.5); overflow: hidden; }
+.sheet[open] { display: flex; flex-direction: column; }
+.sheet::backdrop { background: rgba(10, 14, 12, .55); }
+@media (max-width: 640px) {
+  .sheet { width: 100%; max-width: 100%; max-height: 90vh; margin: auto 0 0; border-radius: 16px 16px 0 0; }
+}
+.sheet-head { display: grid; grid-template-columns: 96px minmax(0, 1fr) 36px; gap: 4px 14px; align-items: start; padding: 18px 16px 14px; border-bottom: 1px solid var(--line); }
+.sheet-head .th { grid-row: 1 / span 3; }
+.sheet-head h3 { margin: 0; font: 400 1.3rem/1.25 var(--display); overflow-wrap: anywhere; }
+.sheet-head .d { grid-column: 2; color: var(--muted); font-size: .9rem; }
+.sheet-head .sum { grid-column: 2; font-size: .92rem; margin-top: 4px; }
+.sheet-head .sum b { font-family: var(--num); }
+.sheet-close { grid-row: 1; grid-column: 3; border: 0; background: var(--sunken); color: var(--muted); width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+.sheet-close svg { width: 16px; height: 16px; }
+.sheet-body { overflow-y: auto; padding: 4px 16px 12px; flex: 1; min-height: 0; }
+.plist { list-style: none; margin: 0; padding: 0; }
+.plist li { display: grid; grid-template-columns: 1.8em minmax(0, 1fr) auto; gap: 0 10px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.plist li:last-child { border-bottom: 0; }
+.plist .k { font: 600 .85rem var(--num); color: var(--faint); }
+.plist .st { font-weight: 700; overflow-wrap: anywhere; }
+.plist .st small { font-weight: 400; color: var(--muted); }
+.plist .pk { grid-column: 2; color: var(--muted); font-size: .82rem; }
+.plist .pr { grid-row: 1 / span 2; grid-column: 3; text-align: end; font: 600 1.05rem var(--num); }
+.plist .pr small { display: block; font: 600 .78rem var(--num); color: var(--muted); }
+.plist li.best .pr, .plist li.best .k { color: var(--good); }
+.plist li.best .pr small { color: var(--good); }
+.plist .tagline { white-space: nowrap; font: 800 .72rem var(--body); background: var(--good-soft); color: var(--good); border-radius: 999px; padding: 1px 8px; margin-inline-start: 6px; }
+.absent { color: var(--muted); font-size: .85rem; margin: 10px 0 4px; }
+.sheet-foot { display: flex; gap: 10px; align-items: center; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: var(--surface); }
+.sheet-foot .qty { grid-row: auto; grid-column: auto; }
+.sheet-foot .go { flex: 1; border: 0; background: var(--accent); color: var(--accent-ink); font-weight: 800; border-radius: 8px; padding: 12px 14px; font-size: 1rem; }
+.sheet-foot .go.in { background: var(--good-soft); color: var(--good); }
+.sheet-foot .linkbtn { color: var(--bad); }
+
+/* Mobile summary bar */
+.dock { position: fixed; inset-inline: 0; bottom: 0; z-index: 10; background: var(--ink); color: var(--ground); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 12px; box-shadow: 0 -6px 20px -8px rgba(0,0,0,.35); }
+.dock .txt { flex: 1; min-width: 0; font-size: .9rem; line-height: 1.3; }
+.dock .txt b { display: block; font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dock .num { font-size: 1.25rem; font-weight: 600; color: var(--tag); }
+.dock button { border: 0; background: var(--tag); color: var(--tag-ink); font-weight: 800; border-radius: 6px; padding: 8px 12px; }
+@media (min-width: 901px) { .dock { display: none; } }
+@media (max-width: 900px) { .wrap { padding-bottom: 110px; } }
+
+.toast { position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 50%; translate: -50% 0; z-index: 20; background: var(--ink); color: var(--ground); padding: 10px 16px; border-radius: 8px; display: flex; gap: 14px; align-items: center; box-shadow: var(--shadow); }
+.toast button { border: 0; background: none; color: var(--tag); font-weight: 800; }
+@media (max-width: 900px) { .toast { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .row > button, .chip, .hit, .qty button { transition: background-color .15s, color .15s; }
+  .gapbar i { transition: width .35s ease; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>סל <span>חדרה</span></h1>
+      <p>בונים סל קניות, ורואים באיזה סופר בחדרה הוא יוצא הכי זול.</p>
+    </div>
+    <div class="meta" id="meta">טוען מחירים…</div>
+  </header>
+
+  <div class="layout">
+    <section class="panel" aria-labelledby="basket-title">
+      <div class="panel-head">
+        <h2 id="basket-title">הסל שלי</h2>
+        <span class="label" id="count"></span>
+      </div>
+      <div class="search">
+        <div class="field">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4 4" stroke-linecap="round"/></svg>
+          <input id="q" type="search" autocomplete="off" enterkeyhint="done" role="combobox" aria-expanded="false" aria-controls="hits" aria-autocomplete="list" aria-label="חיפוש מוצר לפי שם, יצרן או ברקוד" placeholder="חיפוש מוצר, יצרן או ברקוד" disabled>
+        </div>
+        <ul class="hits" id="hits" role="listbox" aria-label="תוצאות חיפוש" hidden></ul>
+        <p class="hint" id="hint"></p>
+      </div>
+
+      <div class="basket-scroll">
+        <div class="example" id="example" hidden>
+          זה סל לדוגמה, כדי שתראו איך ההשוואה עובדת. מוצר שתוסיפו יחליף אותו,
+          או <button class="linkbtn" id="clear2" type="button">התחילו מסל ריק</button>.
+        </div>
+        <div class="basket-head">
+          <span class="label">מוצר</span>
+          <button class="linkbtn" id="clear" type="button">ניקוי הסל</button>
+        </div>
+        <ul class="basket" id="basket"></ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="res-title" id="results-section">
+      <div class="res-head">
+        <h2 id="res-title">איפה הסל הכי זול</h2>
+        <div class="seg" role="group" aria-label="תצוגה">
+          <button type="button" data-view="chain" aria-pressed="true">לפי רשת</button>
+          <button type="button" data-view="store" aria-pressed="false">כל הסניפים</button>
+        </div>
+      </div>
+      <details class="chains-box" id="chains-box">
+        <summary id="chains-sum">רשתות בהשוואה</summary>
+        <div class="chains" id="chains" role="group" aria-label="רשתות בהשוואה"></div>
+      </details>
+      <div id="results"><p class="status">טוען מחירים…</p></div>
+      <p class="note">
+        המחירים מקובצי המחירים שהרשתות מפרסמות לפי חוק שקיפות המחירים, בלי מבצעים ובלי
+        מחירי מועדון. מוצרים ארוזים מושווים לפי ברקוד. מוצרים עם התווית <span class="gtag">כללי</span>,
+        כמו עוף, בשר, דגים, פירות וירקות, מושווים לפי שם: בכל סופר נלקח הפריט המתאים הזול ביותר,
+        ושמו מופיע בפירוט הסל. במוצרים שקילים המחיר הוא לק״ג.
+      </p>
+    </section>
+  </div>
+</div>
+
+<div class="dock" id="dock" hidden>
+  <div class="txt"><span>הכי זול כרגע</span><b id="dock-who"></b></div>
+  <span class="num" id="dock-price"></span>
+  <button type="button" id="dock-go">לדירוג</button>
+</div>
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="sheet-head" id="sheet-head"></div>
+  <div class="sheet-body" id="sheet-body"></div>
+  <div class="sheet-foot" id="sheet-foot"></div>
+</dialog>
+<div class="toast" id="toast" role="status" hidden><span id="toast-msg"></span><button type="button" id="toast-undo">ביטול</button></div>
+
+<script>
+(() => {
+  const EXAMPLE = [
+    ["g:chicken-breast", 1], ["g:veg-tomato", 1], ["g:veg-cucumber", 1], ["g:fruit-banana", 1], ["g:eggs-l-12", 1],
+    ["7290004131074", 2], ["7290004127329", 2], ["7290000066318", 3], ["7290000176420", 1],
+    ["7290000060880", 2], ["7290106577282", 1],
+  ];
+  const QUICK = ["חזה עוף", "עגבנייה", "מלפפון", "ביצים", "בננה", "בשר טחון", "חלב", "קוטג׳", "לחם", "אורז", "שמן", "נייר טואלט"];
+  const KEY_BASKET = "hadera-basket-v1", KEY_OFF = "hadera-chains-off-v1", KEY_VIEW = "hadera-view-v1";
+  const MAX_HITS = 40;
+
+  let P = [], S = [], PRICE = [], PICK = [], CHAINS = {}, byCode = new Map(), hay = [], pop = [], generated = "";
+  let IMG = null, sheetItem = null, sheetQty = 1;
+  let basket = [], isExample = false, off = new Set(), open = null, view = "chain";
+  let hitList = [], hitOn = 0, undoState = null, toastTimer;
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const money = (ag) => (ag / 100).toFixed(2);
+  const shekel = (ag) => `<span class="num">₪${money(ag)}</span>`;
+  const norm = (s) => s.toLowerCase().replace(/["'׳״`]/g, "").replace(/\s+/g, " ").trim();
+  const ICON_X = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>';
+  const ICON_CHEV = '<svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>';
+
+  function load(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+  }
+  // Baskets are stored by barcode so they survive a data refresh.
+  function save() {
+    try {
+      localStorage.setItem(KEY_BASKET, JSON.stringify(isExample ? null : basket.map((b) => ({ c: P[b.i][0], qty: b.qty }))));
+      localStorage.setItem(KEY_OFF, JSON.stringify([...off]));
+      localStorage.setItem(KEY_VIEW, JSON.stringify(view));
+    } catch {}
+  }
+
+  const chainName = (s) => CHAINS[S[s].chain] || S[s].chain;
+  const branchName = (s) => S[s].name.replace(/\(\d+\)/g, "").replace(/\s+ת\.$/, "").replace(/\*/g, "").trim();
+  const address = (s) => (S[s].address && S[s].address !== "unknown" ? S[s].address : "");
+  const active = () => S.map((s, i) => i).filter((i) => !off.has(S[i].chain));
+  const weighted = (i) => P[i][4] === 1;
+  const qtyText = (i, q) => (weighted(i) ? `${q}<small> ק״ג</small>` : `${q}`);
+  const isGeneric = (i) => P[i][5] !== undefined;
+
+  // Thumbnail: a cell of an image sprite (img/s<N>.jpg), the emoji of a generic product, or the name's first letter.
+  function thumb(i, size = "") {
+    if (isGeneric(i)) return `<span class="th emoji ${size}" aria-hidden="true">${P[i][6] || "🛒"}</span>`;
+    const m = IMG && IMG.map[P[i][0]];
+    if (!m) return `<span class="th none ${size}" aria-hidden="true">${esc((P[i][1].match(/[א-תA-Za-z]/) || [""])[0])}</span>`;
+    const g = IMG.grid, col = m[1] % g, row = Math.floor(m[1] / g);
+    return `<span class="th ${size}" aria-hidden="true" style="background-image:url(img/s${m[0]}.jpg);background-size:${g * 100}% ${g * 100}%;background-position:${(col * 100 / (g - 1)).toFixed(3)}% ${(row * 100 / (g - 1)).toFixed(3)}%"></span>`;
+  }
+  const describe = (p) => (p[5] !== undefined ? `${p[5]} · המחיר הזול בכל סופר` : [p[2], p[3]].filter(Boolean).join(" · "));
+
+  // Keep keyboard focus on the "same" control across re-renders.
+  function withFocus(fn) {
+    const a = document.activeElement;
+    const keys = a && a.dataset ? ["q", "d", "sq", "rm", "open", "chain", "view", "add"].filter((k) => a.dataset[k] !== undefined) : [];
+    const sel = keys.length ? keys.map((k) => `[data-${k}="${CSS.escape(a.dataset[k])}"]`).join("") : null;
+    fn();
+    if (sel) { const el = document.querySelector(sel); if (el) el.focus({ preventScroll: true }); }
+  }
+
+  // ---------- search ----------
+  let timer;
+  function onSearch() { clearTimeout(timer); timer = setTimeout(runSearch, 100); }
+
+  function runSearch() {
+    const raw = $("q").value;
+    const q = norm(raw);
+    const hits = $("hits");
+    if (q.length < 2) { hitList = []; hits.hidden = true; hits.innerHTML = ""; $("hint").textContent = ""; $("q").setAttribute("aria-expanded", "false"); return; }
+    const tokens = q.split(" ");
+    const code = /^\d{5,}$/.test(q) ? q.replace(/^0+/, "") : null;
+    const scored = [];
+    for (let i = 0; i < P.length; i++) {
+      let score;
+      if (code) {
+        const c = P[i][0];
+        if (c === code) score = 0; else if (c.startsWith(code)) score = 1; else continue;
+      } else {
+        if (!tokens.every((t) => hay[i].includes(t))) continue;
+        const name = norm(P[i][1]);
+        // Names that start with the query beat names that merely contain it.
+        // Generic products first: those whose own name has every word, then those matched via their category.
+        score = isGeneric(i) ? (tokens.every((t) => name.includes(t)) ? -2 : -1)
+          : name.startsWith(tokens[0]) ? 0 : name.includes(" " + tokens[0]) ? 1 : 2;
+      }
+      scored.push([score, pop[i], i]);
+    }
+    scored.sort((a, b) => a[0] - b[0] || b[1] - a[1]);
+    hitList = scored.slice(0, MAX_HITS).map((x) => x[2]);
+    hitOn = Math.min(hitOn, Math.max(0, hitList.length - 1));
+    renderHits();
+    $("hint").innerHTML = hitList.length
+      ? (scored.length > MAX_HITS ? `מוצגים ${MAX_HITS} מתוך ${scored.length}. דייקו את החיפוש כדי לצמצם.` : "")
+      : "לא מצאנו מוצר כזה. נסו מילה אחרת, שם יצרן או ברקוד.";
+  }
+
+  function renderHits() {
+    const hits = $("hits");
+    const act = active();
+    const inBasket = new Set(basket.map((b) => b.i));
+    hits.hidden = !hitList.length;
+    $("q").setAttribute("aria-expanded", String(!!hitList.length));
+    hits.innerHTML = hitList.map((i, k) => {
+      const ps = act.map((s) => PRICE[s][i]).filter(Boolean);
+      const lo = Math.min(...ps), hi = Math.max(...ps);
+      const range = ps.length
+        ? `<span class="num">₪${money(lo)}${hi !== lo ? "–" + money(hi) : ""}</span>${weighted(i) ? " לק״ג" : ""} · ${ps.length} סניפים`
+        : "לא נמכר ברשתות שנבחרו";
+      const had = inBasket.has(i);
+      return `<li class="hit${k === hitOn ? " on" : ""}${isGeneric(i) ? " gen" : ""}" id="hit-${k}" role="option" aria-selected="${k === hitOn}" data-pick="${i}">
+        ${thumb(i)}<span class="n">${isGeneric(i) ? '<span class="gtag">כללי</span>' : ""}${esc(P[i][1])}</span>
+        <span class="d">${describe(P[i]) ? esc(describe(P[i])) + " · " : ""}${range}</span>
+        <button type="button" class="add" data-add="${i}" tabindex="-1" ${had ? "disabled" : ""}>${had ? "✓ בסל" : "הוספה"}</button></li>`;
+    }).join("");
+    if (hitList.length) $("q").setAttribute("aria-activedescendant", `hit-${hitOn}`); else $("q").removeAttribute("aria-activedescendant");
+  }
+
+  function moveHit(d) {
+    if (!hitList.length) return;
+    hitOn = (hitOn + d + hitList.length) % hitList.length;
+    renderHits();
+    const el = $(`hit-${hitOn}`); if (el) el.scrollIntoView({ block: "nearest" });
+  }
+
+  // ---------- basket ----------
+  function add(i) {
+    if (isExample) { basket = []; isExample = false; open = null; }
+    if (!basket.some((b) => b.i === i)) basket.push({ i, qty: 1 });
+    save(); render(); renderHits();
+  }
+  function setQty(i, dir) {
+    const b = basket.find((x) => x.i === i);
+    if (!b) return;
+    const step = weighted(i) ? 0.5 : 1;
+    b.qty = Math.max(step, Math.round((b.qty + dir * step) * 2) / 2);
+    isExample = false; save(); withFocus(render);
+  }
+  function remove(i) {
+    const idx = basket.findIndex((b) => b.i === i);
+    basket = basket.filter((b) => b.i !== i);
+    isExample = false; save(); render(); renderHits();
+    const rms = document.querySelectorAll("[data-rm]");
+    (rms[Math.min(idx, rms.length - 1)] || $("q")).focus({ preventScroll: true });
+  }
+  function clear() {
+    undoState = { basket: basket.slice(), isExample };
+    basket = []; isExample = false; open = null; save(); render(); renderHits();
+    if (undoState.basket.length) toast("הסל נוקה");
+    $("q").focus();
+  }
+  function toast(msg) {
+    $("toast-msg").textContent = msg; $("toast").hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => ($("toast").hidden = true), 6000);
+  }
+
+  function cheapestFor(i, act) {
+    let m = 0;
+    for (const s of act) { const p = PRICE[s][i]; if (p && (!m || p < m)) m = p; }
+    return m;
+  }
+
+  function renderBasket() {
+    const units = basket.filter((b) => !weighted(b.i)).reduce((a, b) => a + b.qty, 0);
+    $("count").textContent = basket.length ? `${basket.length} מוצרים · ${units} יח׳` : "";
+    $("example").hidden = !isExample;
+    $("clear").hidden = !basket.length;
+    const act = active();
+    $("basket").innerHTML = basket.length ? basket.map(({ i, qty }) => {
+      const lo = cheapestFor(i, act);
+      return `<li class="bi"><span data-info="${i}">${thumb(i, "sm")}</span><span class="n" data-info="${i}">${isGeneric(i) ? '<span class="gtag">כללי</span>' : ""}${esc(P[i][1])}</span>
+        <span class="d">${describe(P[i]) ? `<span>${esc(describe(P[i]))}</span>` : ""}
+          ${lo ? `<span class="from">מ־₪<span class="num">${money(lo)}</span>${weighted(i) ? " לק״ג" : ""}</span>` : `<span class="none">לא נמכר ברשתות שנבחרו</span>`}</span>
+        <span class="qty"><button type="button" data-q="${i}" data-d="-1" aria-label="פחות ${esc(P[i][1])}">−</button><span aria-live="polite">${qtyText(i, qty)}</span><button type="button" data-q="${i}" data-d="1" aria-label="עוד ${esc(P[i][1])}">+</button></span>
+        <button type="button" class="rm" data-rm="${i}" aria-label="הסרת ${esc(P[i][1])} מהסל">${ICON_X}</button></li>`;
+    }).join("")
+      : `<li class="empty">הסל ריק. חפשו מוצר למעלה, או התחילו מאחד מאלה:
+          <div class="quick">${QUICK.map((w) => `<button type="button" data-quick="${esc(w)}">${esc(w)}</button>`).join("")}</div></li>`;
+  }
+
+  // ---------- product sheet ----------
+  function openSheet(i) {
+    sheetItem = i;
+    const inB = basket.find((b) => b.i === i);
+    sheetQty = inB ? inB.qty : 1;
+    renderSheet();
+    const d = $("sheet");
+    if (!d.open) d.showModal();
+    $("sheet-body").scrollTop = 0;
+  }
+  function closeSheet() { const d = $("sheet"); if (d.open) d.close(); }
+
+  function renderSheet() {
+    const i = sheetItem;
+    if (i === null) return;
+    const act = active();
+    const rows = act.map((s) => ({ s, p: PRICE[s][i] })).filter((r) => r.p).sort((a, b) => a.p - b.p);
+    const absent = act.filter((s) => !PRICE[s][i]);
+    const lo = rows.length ? rows[0].p : 0, hi = rows.length ? rows[rows.length - 1].p : 0;
+    const per = weighted(i) ? " לק״ג" : "";
+    const inB = basket.find((b) => b.i === i);
+
+    $("sheet-head").innerHTML = `${thumb(i, "lg")}
+      <h3 id="sheet-title">${isGeneric(i) ? '<span class="gtag">כללי</span>' : ""}${esc(P[i][1])}</h3>
+      <button type="button" class="sheet-close" data-close aria-label="סגירה">${ICON_X}</button>
+      <div class="d">${esc(describe(P[i]))}${isGeneric(i) ? "" : ` · <span class="num">${esc(P[i][0])}</span>`}</div>
+      <div class="sum">${rows.length
+        ? `${rows.length} סניפים · <b class="num">₪${money(lo)}${hi !== lo ? "–" + money(hi) : ""}</b>${per}${hi !== lo ? ` · היקר ביותר יקר ב־${Math.round((100 * (hi - lo)) / lo)}%` : " בכל הסניפים"}`
+        : "לא נמכר באף סניף ברשתות שנבחרו"}</div>`;
+
+    $("sheet-body").innerHTML = `<ol class="plist">${rows.map((r, k) => {
+      const pick = PICK[r.s].get(i);
+      const best = r.p === lo;
+      return `<li class="${best ? "best" : ""}">
+        <span class="k">${k + 1}</span>
+        <span class="st">${esc(chainName(r.s))} <small>${esc(branchName(r.s))}</small>${best ? '<span class="tagline">הכי זול</span>' : ""}</span>
+        <span class="pr">₪${money(r.p)}${per ? `<small>לק״ג</small>` : ""}${!best ? `<small>+₪${money(r.p - lo)}</small>` : ""}</span>
+        ${pick ? `<span class="pk">${esc(pick)}</span>` : ""}
+      </li>`;
+    }).join("")}</ol>
+    ${absent.length ? `<p class="absent">לא נמכר ב־${absent.length} סניפים: ${esc([...new Set(absent.map((s) => chainName(s) + " " + branchName(s)))].join(" · "))}</p>` : ""}`;
+
+    const q = `<span class="qty"><button type="button" data-sq="-1" aria-label="פחות">−</button><span aria-live="polite">${qtyText(i, sheetQty)}</span><button type="button" data-sq="1" aria-label="עוד">+</button></span>`;
+    $("sheet-foot").innerHTML = inB
+      ? `${q}<button type="button" class="go in" data-sheet-done>✓ בסל · סגירה</button><button type="button" class="linkbtn" data-sheet-rm>הסרה</button>`
+      : `${q}<button type="button" class="go" data-sheet-add ${rows.length ? "" : "disabled"}>הוספה לסל${rows.length ? ` · מ־₪${money(Math.round(lo * sheetQty))}` : ""}</button>`;
+  }
+
+  // ---------- comparison ----------
+  function storeRows(act) {
+    const rows = act.map((s) => {
+      let total = 0, missing = 0;
+      for (const { i, qty } of basket) {
+        const p = PRICE[s][i];
+        if (p) total += Math.round(p * qty); else missing++;
+      }
+      return { s, total, missing };
+    });
+    rows.sort((a, b) => a.missing - b.missing || a.total - b.total);
+    return rows;
+  }
+
+  function renderResults() {
+    const out = $("results");
+    const dock = $("dock");
+    if (!basket.length) { dock.hidden = true; out.innerHTML = `<p class="status">הוסיפו מוצרים לסל, והדירוג של הסופרים יופיע כאן.</p>`; return; }
+    const act = active();
+    if (!act.length) { dock.hidden = true; out.innerHTML = `<p class="status">כל הרשתות כבויות. סמנו לפחות רשת אחת ברשימת הרשתות.</p>`; return; }
+
+    const all = storeRows(act);
+    // Branches that carry less than half the basket (pharmacies, kiosks) aren't a real option.
+    let rows = all.filter((r) => r.missing * 2 <= basket.length);
+    if (!rows.length) rows = all;
+    const hidden = all.length - rows.length;
+
+    // Per-item cheapest / priciest among the shown branches, for the receipt colours and split total.
+    const lo = new Map(), hi = new Map();
+    let split = 0; const splitStores = new Set();
+    for (const { i, qty } of basket) {
+      let m = 0, ms = -1, mx = 0;
+      for (const { s } of rows) { const p = PRICE[s][i]; if (p && (!m || p < m)) { m = p; ms = s; } if (p > mx) mx = p; }
+      if (ms < 0) continue;
+      lo.set(i, m); hi.set(i, mx); split += Math.round(m * qty); splitStores.add(ms);
+    }
+
+    const best = rows[0];
+    const full = rows.filter((r) => r.missing === 0);
+    const ties = full.filter((r) => r !== best && r.total === best.total && !best.missing);
+    const worstFull = full[full.length - 1];
+
+    // Group by chain: the chain's best branch represents it.
+    let list;
+    if (view === "chain") {
+      const seen = new Map();
+      for (const r of rows) {
+        const k = S[r.s].chain;
+        if (!seen.has(k)) seen.set(k, { ...r, others: [] }); else seen.get(k).others.push(r);
+      }
+      list = [...seen.values()];
+    } else list = rows.map((r) => ({ ...r, others: [] }));
+
+
+    const strip = [];
+    if (!best.missing && worstFull && worstFull.total > best.total)
+      strip.push(`<span>זול ב־<b>₪${money(worstFull.total - best.total)}</b> מהסל המלא היקר ביותר</span>`);
+    if (ties.length) strip.push(`<span>אותו מחיר גם ב${esc(chainName(ties[0].s))} ${esc(branchName(ties[0].s))}${ties.length > 1 ? ` ועוד ${ties.length - 1}` : ""}</span>`);
+    if (!strip.length) strip.push(`<span>${best.missing ? `חסרים כאן ${best.missing} מוצרים מהסל` : "כל הסל זמין כאן"}</span>`);
+
+    const facts = [];
+    const splitSave = best.missing ? 0 : best.total - split;
+    if (splitStores.size > 1 && splitSave >= 200)
+      facts.push(`קנייה מפוצלת בין ${splitStores.size} סניפים תחסוך עוד <b>₪${money(splitSave)}</b>`);
+    if (!full.length) facts.push("אין סניף שיש בו את כל הסל. הדירוג לפי מספר המוצרים החסרים ואז לפי מחיר.");
+    if (hidden) facts.push(`${hidden} סניפים לא מוצגים כי חסרים בהם יותר ממחצית הסל`);
+
+    out.innerHTML = `
+      <div class="tag">
+        <div class="eyebrow">${best.missing ? "הכי קרוב לסל מלא" : "הסל הכי זול"}</div>
+        <div class="who">${esc(chainName(best.s))} · ${esc(branchName(best.s))}</div>
+        <div class="where">${esc(address(best.s))}</div>
+        <div class="price num"><small>₪</small>${money(best.total)}</div>
+        <div class="strip">${strip.join("")}</div>
+      </div>
+      <div class="facts">${facts.map((f) => `<span class="fact">${f}</span>`).join("")}</div>
+      <ol class="rank">${list.map((r, k) => row(r, k, best.missing ? 0 : best.total, lo, hi)).join("")}</ol>`;
+
+    dock.hidden = false;
+    $("dock-who").textContent = `${chainName(best.s)} · ${branchName(best.s)}`;
+    $("dock-price").textContent = `₪${money(best.total)}`;
+  }
+
+  function row(r, k, base, lo, hi) {
+    const id = S[r.s].id;
+    const isOpen = open === id;
+    const first = k === 0;
+    const label = `${esc(chainName(r.s))} <small>${esc(branchName(r.s))}</small>`;
+    let gap = "";
+    if (!r.missing) {
+      const extra = r.total - base;
+      // One fixed scale for every view: a full bar means 20% more than the cheapest basket.
+      const w = base ? Math.min(100, (extra / base) * 500) : 0;
+      gap = `<span class="gapbar"><span class="track"><i style="width:${first || !extra ? 0 : w.toFixed(1)}%"></i></span>
+        <span>${first ? "הכי זול" : extra ? `+₪<span class="num">${money(extra)}</span> (${(100 * extra / base).toFixed(1)}%)` : "אותו מחיר"}</span>${ICON_CHEV}</span>`;
+    } else {
+      gap = `<span class="gapbar"><span class="track" style="visibility:hidden"></span>${ICON_CHEV}</span>`;
+    }
+    const sub = [];
+    sub.push(r.missing ? `<span class="pill miss">חסרים ${r.missing}</span>` : `<span class="pill full">סל מלא</span>`);
+    if (address(r.s)) sub.push(`<span>${esc(address(r.s))}</span>`);
+    if (isStale(r.s)) sub.push(`<span class="stale">מחירים מ־${esc(dayFmt(S[r.s].asof))}</span>`);
+    if (r.others.length) sub.push(`<span>+${r.others.length} סניפים נוספים</span>`);
+    return `<li class="row${first ? " first" : ""}${isOpen ? " open" : ""}">
+      <button type="button" data-open="${esc(id)}" aria-expanded="${isOpen}">
+        <span class="pos">${k + 1}</span>
+        <span class="store">${label}</span>
+        <span class="tot num${r.missing ? " partial" : ""}">₪${money(r.total)}${r.missing ? `<small>${withoutItems(r.missing)}</small>` : ""}</span>
+        <span class="sub">${sub.join("")}</span>
+        ${gap}
+      </button>
+      ${isOpen ? receipt(r, lo, hi) : ""}
+    </li>`;
+  }
+  // A store whose new price file wasn't out yet keeps its previous prices.
+  const isStale = (s) => S[s].asof && generated && new Date(generated) - new Date(S[s].asof) > 3 * 3600e3;
+  const dayFmt = (iso) => new Intl.DateTimeFormat("he-IL", { timeZone: "Asia/Jerusalem", day: "numeric", month: "numeric" }).format(new Date(iso));
+  const withoutItems = (n) => (n === 1 ? "בלי מוצר אחד" : `בלי ${n} מוצרים`);
+
+  function receipt(r, lo, hi) {
+    const lines = basket.map(({ i, qty }) => {
+      const p = PRICE[r.s][i];
+      if (!p) return `<div class="line"><span class="nm">${esc(P[i][1])}</span><span class="dots"></span><span class="na">לא נמכר כאן</span></div>`;
+      const cls = p === lo.get(i) ? "lo" : p === hi.get(i) && lo.get(i) !== hi.get(i) ? "hi" : "";
+      const q = qty !== 1 ? `<span class="qx">${qty}${weighted(i) ? " ק״ג" : ""} × ${money(p)} = </span>` : "";
+      const pick = PICK[r.s].get(i);
+      return `<div class="line"><span class="nm">${esc(P[i][1])}${pick ? `<span class="pick">${esc(pick)}</span>` : ""}</span><span class="dots"></span><span class="pr ${cls}">${q}₪${money(Math.round(p * qty))}</span></div>`;
+    }).join("");
+    const others = r.others.length
+      ? `<ul class="others">${r.others.map((o) => `<li><span>${esc(branchName(o.s))}${o.missing ? ` · חסרים ${o.missing}` : ""}</span>${shekel(o.total)}</li>`).join("")}</ul>` : "";
+    return `<div class="receipt">${lines}
+      <div class="line sum"><span>סה״כ</span><span class="dots"></span><span class="pr">₪${money(r.total)}</span></div>
+      <div class="legend"><span class="lo">ירוק: הכי זול בין הסניפים</span><span class="hi">אדום: הכי יקר</span></div>
+      ${others ? `<div class="label" style="margin-top:12px">סניפים נוספים של הרשת</div>${others}` : ""}
+    </div>`;
+  }
+
+  function renderChains() {
+    const keys = [...new Set(S.map((s) => s.chain))];
+    $("chains").innerHTML = keys.map((k) => {
+      const n = S.filter((s) => s.chain === k).length;
+      return `<button type="button" class="chip" data-chain="${esc(k)}" aria-pressed="${!off.has(k)}">${esc(CHAINS[k] || k)} <span class="num">${n}</span></button>`;
+    }).join("");
+    const on = keys.filter((k) => !off.has(k)).length;
+    const stores = active().length;
+    $("chains-sum").innerHTML = `רשתות בהשוואה: <b>${on} מתוך ${keys.length}</b> · ${stores} סניפים`;
+  }
+
+  function render() { renderBasket(); renderResults(); }
+
+  // ---------- events ----------
+  document.addEventListener("click", (e) => {
+    if (e.target === $("sheet")) { closeSheet(); return; }  // a click on the backdrop
+    const addBtn = e.target.closest("[data-add]");
+    if (addBtn) { if (!addBtn.disabled) { add(+addBtn.dataset.add); $("q").focus({ preventScroll: true }); } return; }
+    const pick = e.target.closest("[data-pick]");
+    if (pick) { openSheet(+pick.dataset.pick); return; }
+    const info = e.target.closest("[data-info]");
+    if (info) { openSheet(+info.dataset.info); return; }
+    const t = e.target.closest("button");
+    if (!t) return;
+    if (t.dataset.sq) {
+      const step = weighted(sheetItem) ? 0.5 : 1;
+      sheetQty = Math.max(step, Math.round((sheetQty + +t.dataset.sq * step) * 2) / 2);
+      const b = basket.find((x) => x.i === sheetItem);
+      if (b) { b.qty = sheetQty; isExample = false; save(); render(); }
+      withFocus(renderSheet);
+    } else if (t.dataset.sheetAdd !== undefined) {
+      add(sheetItem);
+      const b = basket.find((x) => x.i === sheetItem); if (b) b.qty = sheetQty;
+      save(); render(); closeSheet(); $("q").focus({ preventScroll: true });
+    } else if (t.dataset.sheetRm !== undefined) { const i = sheetItem; closeSheet(); remove(i); }
+    else if (t.dataset.sheetDone !== undefined || t.dataset.close !== undefined) closeSheet();
+    else if (t.dataset.q) setQty(+t.dataset.q, +t.dataset.d);
+    else if (t.dataset.rm) remove(+t.dataset.rm);
+    else if (t.dataset.open) { open = open === t.dataset.open ? null : t.dataset.open; withFocus(renderResults); }
+    else if (t.dataset.chain) {
+      const k = t.dataset.chain;
+      off.has(k) ? off.delete(k) : off.add(k);
+      save(); withFocus(() => { renderChains(); render(); }); renderHits();
+    } else if (t.dataset.view) {
+      view = t.dataset.view; open = null; save();
+      document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
+      withFocus(renderResults);
+    } else if (t.dataset.quick) { $("q").value = t.dataset.quick; hitOn = 0; runSearch(); $("q").focus(); }
+    else if (t.id === "clear" || t.id === "clear2") clear();
+    else if (t.id === "toast-undo" && undoState) {
+      basket = undoState.basket; isExample = undoState.isExample; undoState = null;
+      $("toast").hidden = true; save(); render(); renderHits();
+    } else if (t.id === "dock-go") $("results-section").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
+  $("q").addEventListener("input", () => { hitOn = 0; onSearch(); });
+  $("q").addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); moveHit(1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); moveHit(-1); }
+    else if (e.key === "Enter") {
+      e.preventDefault();
+      clearTimeout(timer); runSearch();
+      const i = hitList[hitOn];
+      if (i !== undefined) openSheet(i);
+    } else if (e.key === "Escape") { $("q").value = ""; runSearch(); }
+  });
+
+  // Hide the mobile summary bar while the ranking itself is on screen.
+  if ("IntersectionObserver" in window) {
+    let visible = false;
+    new IntersectionObserver((es) => { visible = es[0].isIntersecting; $("dock").style.visibility = visible ? "hidden" : ""; }, { threshold: 0.05 })
+      .observe($("results-section"));
+  }
+
+  // ---------- data ----------
+  fetch("data.json").then((r) => {
+    if (!r.ok) throw new Error(r.status);
+    return r.json();
+  }).then((D) => {
+    P = D.products; S = D.stores; CHAINS = D.chains; generated = D.generated;
+    // Generic fresh products share the product list, keyed "g:<key>"; p[5] holds their category.
+    const base = P.length;
+    for (const [key, name, cat, unit, icon] of D.generics || []) P.push(["g:" + key, name, "", "", unit === "kg" ? 1 : 0, cat, icon]);
+    pop = new Uint8Array(P.length);
+    PRICE = D.prices.map((flat) => {
+      const a = new Int32Array(P.length);
+      for (let k = 0, i = 0; k < flat.length; k += 2) { i += flat[k]; a[i] = flat[k + 1]; pop[i]++; }
+      return a;
+    });
+    PICK = S.map(() => new Map());
+    (D.gprices || []).forEach((list, s) => {
+      for (const [g, price, name] of list) { PRICE[s][base + g] = price; PICK[s].set(base + g, name); pop[base + g]++; }
+    });
+    P.forEach((p, i) => byCode.set(p[0], i));
+    hay = P.map((p) => norm(p[1] + " " + p[2] + " " + (p[5] ?? p[0])));
+
+    const when = new Date(D.generated);
+    const fmt = new Intl.DateTimeFormat("he-IL", { timeZone: "Asia/Jerusalem", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" });
+    const chainsN = new Set(S.map((s) => s.chain)).size;
+    $("meta").innerHTML = `<span><b class="num">${S.length}</b> סניפים · <b class="num">${chainsN}</b> רשתות · <b class="num">${P.length.toLocaleString("he-IL")}</b> מוצרים</span><span>מחירים עדכניים ל־${fmt.format(when)}</span>`;
+
+    off = new Set(load(KEY_OFF, []));
+    view = load(KEY_VIEW, "chain") === "store" ? "store" : "chain";
+    document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
+    const saved = load(KEY_BASKET, null);
+    if (Array.isArray(saved)) {
+      basket = saved.map((b) => ({ i: byCode.get(b.c), qty: b.qty })).filter((b) => b.i !== undefined && b.qty > 0);
+    } else {
+      basket = EXAMPLE.map(([c, qty]) => ({ i: byCode.get(c), qty })).filter((b) => b.i !== undefined);
+      isExample = true;
+    }
+    $("q").disabled = false;
+    renderChains(); render();
+    // Thumbnails are optional: the page works the same without them.
+    fetch("img/index.json").then((r) => (r.ok ? r.json() : null)).then((idx) => {
+      if (!idx) return;
+      IMG = idx; renderBasket(); renderHits(); renderSheet();
+    }).catch(() => {});
+  }).catch(() => {
+    $("meta").textContent = "";
+    $("results").innerHTML = `<p class="status">קובץ המחירים (data.json) לא נטען. הריצו <code>python -m pricecompare update</code> ורעננו את הדף.</p>`;
+  });
+})();
+</script>
+</body>
+</html>
