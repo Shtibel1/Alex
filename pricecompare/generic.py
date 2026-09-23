@@ -121,6 +121,28 @@ CATALOG = [
     ("veg-lettuce", "חסה (ראש)", "ירוקים", _UNIT, r"^ ?חסה( |$)", r"קצוצה|שטופה|ארוזה|לליק|מיקס|עלי בייבי|בייבי|סלט|אורגני|אייסברג קצוצ|גרם|מגש", {"bunch": True}),
 ]
 
+# Icon per generic product (key or key prefix); the page shows it in place of a photo.
+ICONS = {
+    "chicken": "🍗", "turkey": "🍗", "beef": "🥩", "lamb": "🥩", "fish": "🐟",
+    "veg-tomato": "🍅", "veg-cucumber": "🥒", "veg-pepper-hot": "🌶️", "veg-pepper": "🫑", "veg-onion": "🧅",
+    "veg-potato": "🥔", "veg-sweet-potato": "🍠", "veg-carrot": "🥕", "veg-zucchini": "🥒", "veg-eggplant": "🍆",
+    "veg-cabbage": "🥬", "veg-cauliflower": "🥦", "veg-broccoli": "🥦", "veg-kohlrabi": "🥬", "veg-beet": "🍠",
+    "veg-pumpkin": "🎃", "veg-butternut": "🎃", "veg-fennel": "🌿", "veg-green-beans": "🌱", "veg-corn": "🌽",
+    "veg-garlic": "🧄", "veg-lettuce": "🥬",
+    "fruit-banana": "🍌", "fruit-apple": "🍎", "fruit-orange": "🍊", "fruit-clementine": "🍊", "fruit-lemon": "🍋",
+    "fruit-avocado": "🥑", "fruit-mango": "🥭", "fruit-peach": "🍑", "fruit-nectarine": "🍑", "fruit-plum": "🍑",
+    "fruit-pear": "🍐", "fruit-grapes": "🍇", "fruit-melon": "🍈", "fruit-watermelon": "🍉", "fruit-pomegranate": "🍎",
+    "fruit-kiwi": "🥝", "fruit-grapefruit": "🍊", "fruit-persimmon": "🍅", "fruit-pomelit": "🍈",
+    "eggs": "🥚", "herb": "🌿",
+}
+
+
+def icon(key):
+    """Longest matching key prefix wins ("veg-pepper-hot" before "veg-pepper")."""
+    best = max((k for k in ICONS if key == k or key.startswith(k + "-") or key.startswith(k)), key=len, default=None)
+    return ICONS[best] if best else "🛒"
+
+
 # Words that never belong to a generic fresh product.
 _GLOBAL_EXCLUDE = r"קולינרי|מזון לחתול|מזון לכלב|לחתולים|לכלבים|שקית|מגש חד|קיסמים"
 
@@ -130,10 +152,11 @@ def _norm(name: str) -> str:
     return " " + " ".join(name.split()) + " "
 
 
-def _compile(pattern):
+def _compile(pattern, exclude=False):
     if not pattern:
         return None
-    if "קפוא" in pattern:
+    if exclude and "קפוא" in pattern:
+        # A name cut short often ends in "קפ" / "קפו" for קפוא (frozen).
         pattern += r"| קפ $| קפו $"
     return re.compile(pattern.replace("^ ?", "^ "))
 
@@ -143,7 +166,7 @@ for key, name, cat, unit, match, exclude, extra in CATALOG:
     extra = extra or {}
     _RULES.append({
         "key": key, "name": name, "category": cat, "unit": unit,
-        "match": _compile(match), "exclude": _compile(exclude),
+        "match": _compile(match), "exclude": _compile(exclude, exclude=True),
         "must": _compile(extra.get("must")), "size": _compile(extra.get("size")),
         "qty": extra.get("qty"), "bunch": extra.get("bunch", False),
     })
@@ -227,4 +250,4 @@ def pick_prices(per_store):
 
 
 def catalog():
-    return [(r["key"], r["name"], r["category"], r["unit"]) for r in _RULES]
+    return [(r["key"], r["name"], r["category"], r["unit"], icon(r["key"])) for r in _RULES]

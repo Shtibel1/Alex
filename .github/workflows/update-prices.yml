@@ -28,6 +28,13 @@ jobs:
       - name: Fetch the previously published prices
         run: curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data.json" -o web/data.json || true
       - run: python -m pricecompare update
+      # Thumbnails change rarely: keep downloaded ones between runs.
+      - uses: actions/cache@v4
+        with:
+          path: .cache/thumbs
+          key: thumbs-${{ github.run_id }}
+          restore-keys: thumbs-
+      - run: python -m pricecompare images
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web
