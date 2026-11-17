@@ -17,9 +17,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt
@@ -29,13 +30,13 @@ jobs:
         run: curl -fsSL "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data.json" -o web/data.json || true
       - run: python -m pricecompare update
       # Thumbnails change rarely: keep downloaded ones between runs.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .cache/thumbs
           key: thumbs-${{ github.run_id }}
           restore-keys: thumbs-
       - run: python -m pricecompare images
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: web
 
@@ -47,4 +48,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

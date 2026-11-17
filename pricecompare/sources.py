@@ -12,36 +12,57 @@ import time
 from datetime import datetime, timedelta
 
 import requests
+from urllib3.exceptions import NewConnectionError
 
 from .parse import file_store_and_time, parse_stores
 
-TIMEOUT = 120
+# (connect, read) seconds. Reading a big PriceFull file can be slow, but a portal
+# that doesn't even accept the connection (some block foreign cloud IPs, e.g.
+# GitHub Actions) should fail in seconds, not hold the whole run for minutes.
+CONNECT_TIMEOUT = 15
+READ_TIMEOUT = 120
+TIMEOUT = (CONNECT_TIMEOUT, READ_TIMEOUT)
+ATTEMPTS = 4          # slow or flaky responses
+CONNECT_ATTEMPTS = 2  # the server can't be reached at all
 HEADERS = {"User-Agent": "Mozilla/5.0 (price-compare; +https://github.com/shtibel1/alex)"}
 
 
-def _get(session, url, **kwargs):
-    """GET with a few retries; the portals are slow and occasionally time out."""
-    for attempt in range(4):
+def _unreachable(error):
+    """True when the server couldn't be reached at all (timeout, refused, DNS)."""
+    if isinstance(error, requests.ConnectTimeout):
+        return True
+    if not isinstance(error, requests.ConnectionError):
+        return False
+    reason = error.args[0] if error.args else None
+    reason = getattr(reason, "reason", reason)  # urllib3's MaxRetryError wraps the cause
+    return isinstance(reason, NewConnectionError)
+
+
+def _request(method, url, *, sleep=time.sleep, **kwargs):
+    """Send with a few retries; the portals are slow and occasionally time out.
+
+    A server that can't be reached gets fewer attempts than a slow or flaky
+    one: a blocked host stays blocked, so retrying it only wastes time.
+    """
+    unreachable = 0
+    for attempt in range(ATTEMPTS):
         try:
-            r = session.get(url, timeout=TIMEOUT, **kwargs)
+            r = method(url, timeout=TIMEOUT, **kwargs)
             r.raise_for_status()
             return r
-        except requests.RequestException:
-            if attempt == 3:
+        except requests.RequestException as e:
+            unreachable += _unreachable(e)
+            if attempt == ATTEMPTS - 1 or unreachable >= CONNECT_ATTEMPTS:
                 raise
-            time.sleep(2 ** (attempt + 1))
+        sleep(2 ** (attempt + 1))
+
+
+def _get(session, url, **kwargs):
+    return _request(session.get, url, **kwargs)
 
 
 def _post(session, url, **kwargs):
-    for attempt in range(4):
-        try:
-            r = session.post(url, timeout=TIMEOUT, **kwargs)
-            r.raise_for_status()
-            return r
-        except requests.RequestException:
-            if attempt == 3:
-                raise
-            time.sleep(2 ** (attempt + 1))
+    return _request(session.post, url, **kwargs)
 
 
 def _latest(names):
